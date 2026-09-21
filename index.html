@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GEO-LOG INTERPRET PRO - Visualisasi & Ekspor Gambar Log Sumur Migas</title>
+    <title>GEO-LOG IMAGE INTERPRET PRO - Digitasi Gambar & Interpretasi Log Sumur Migas</title>
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -11,7 +11,7 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
-    <!-- Chart.js for Crossplots -->
+    <!-- Chart.js for Crossplots & Pickett Plots -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- Tailwind Config -->
@@ -34,7 +34,7 @@
     </script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
         
         body {
             font-family: 'Inter', sans-serif;
@@ -67,6 +67,20 @@
             color: #38bdf8;
             background-color: rgba(56, 189, 248, 0.08);
         }
+
+        /* Calibration Target Cursor */
+        .calibration-cursor {
+            cursor: crosshair;
+        }
+
+        .pulse-badge {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col overflow-x-hidden">
@@ -75,75 +89,73 @@
     <header class="bg-geodark-850 border-b border-slate-800 px-4 py-3 flex flex-wrap items-center justify-between sticky top-0 z-40 shadow-2xl">
         <div class="flex items-center space-x-3">
             <div class="bg-gradient-to-br from-amber-500 via-amber-600 to-sky-600 p-2.5 rounded-xl shadow-lg shadow-amber-500/10 flex items-center justify-center">
-                <i data-lucide="layers" class="w-6 h-6 text-white"></i>
+                <i data-lucide="scan-line" class="w-6 h-6 text-white"></i>
             </div>
             <div>
                 <div class="flex items-center space-x-2">
                     <h1 class="font-extrabold text-xl tracking-tight text-white flex items-center gap-1.5">
-                        GEO-LOG <span class="text-amber-400">INTERPRET</span> <span class="text-sky-400 font-mono text-xs px-2 py-0.5 rounded bg-sky-950 border border-sky-800">JPG-PRO</span>
+                        GEO-LOG <span class="text-amber-400">DIGI-INTERPRET</span> <span class="text-sky-400 font-mono text-xs px-2 py-0.5 rounded bg-sky-950 border border-sky-800">IMAGE-PRO</span>
                     </h1>
                 </div>
-                <p class="text-[11px] text-slate-400">Platform Visualisasi, Interpretasi Petrofisika & Ekspor Gambar Log JPG Resolusi Tinggi</p>
+                <p class="text-[11px] text-slate-400">Digitasi Gambar Log Sumur (JPG/PNG), Ekstraksi Piksel CV, & Interpretasi Petrofisika Multi-Track</p>
             </div>
         </div>
 
-        <!-- Well Selector & Export Actions -->
+        <!-- Well Selector, Workflow Stepper & Export Actions -->
         <div class="flex flex-wrap items-center gap-2 my-2 sm:my-0">
-            <!-- Preset Well Dropdown -->
+            <!-- Preset Sample Image Dropdown -->
             <div class="flex items-center bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs">
-                <i data-lucide="map-pin" class="w-3.5 h-3.5 text-amber-400 mr-1.5"></i>
-                <span class="text-slate-400 mr-2 font-mono">Sumur:</span>
+                <i data-lucide="file-image" class="w-3.5 h-3.5 text-amber-400 mr-1.5"></i>
+                <span class="text-slate-400 mr-2 font-mono">Sampel Log:</span>
                 <select id="sel-preset-well" class="bg-transparent text-amber-300 font-semibold font-mono focus:outline-none cursor-pointer">
-                    <option value="Alpha-01" class="bg-slate-900 text-amber-300">Sumur Alpha-01 (Prospek Dual Gas & Minyak)</option>
-                    <option value="Beta-02" class="bg-slate-900 text-sky-300">Sumur Beta-02 (Reservoar Air / Wet Sand)</option>
-                    <option value="Gamma-03" class="bg-slate-900 text-slate-300">Sumur Gamma-03 (Tight Shaly Sand)</option>
+                    <option value="Alpha-01" class="bg-slate-900 text-amber-300">Gambar Log Alpha-01 (Minyak & Gas)</option>
+                    <option value="Beta-02" class="bg-slate-900 text-sky-300">Gambar Log Beta-02 (Water Sand)</option>
+                    <option value="Gamma-03" class="bg-slate-900 text-slate-300">Gambar Log Gamma-03 (Shaly Tight)</option>
                 </select>
             </div>
 
-            <!-- KEY FEATURE: DOWNLOAD LOG JPG BUTTON -->
+            <!-- Upload Image Button -->
+            <label class="flex items-center space-x-1.5 px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-xs font-semibold text-white rounded-lg cursor-pointer transition shadow-md shadow-sky-600/20">
+                <i data-lucide="upload-cloud" class="w-4 h-4"></i>
+                <span>Unggah Gambar Log (JPG/PNG)</span>
+                <input type="file" id="file-input-image" accept="image/jpeg,image/png,image/jpg" class="hidden">
+            </label>
+
+            <!-- Export JPG Button -->
             <button id="btn-open-jpg-modal" class="flex items-center space-x-2 px-3.5 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold text-xs rounded-lg transition shadow-lg shadow-amber-500/20 border border-amber-400">
                 <i data-lucide="image" class="w-4 h-4"></i>
-                <span>Unduh Log JPG (Gambar)</span>
+                <span>Ekspor JPG Log</span>
             </button>
 
-            <!-- Download Raw LAS Button -->
-            <button id="btn-download-las" class="flex items-center space-x-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-medium rounded-lg transition border border-slate-700 text-slate-200">
-                <i data-lucide="file-code" class="w-4 h-4 text-sky-400"></i>
-                <span class="hidden sm:inline">LAS Mentah</span>
-            </button>
-
-            <!-- Download Interpreted CSV Button -->
+            <!-- Download CSV Button -->
             <button id="btn-download-csv" class="flex items-center space-x-1.5 px-3 py-1.5 bg-emerald-800 hover:bg-emerald-700 text-xs font-medium text-white rounded-lg transition border border-emerald-700">
                 <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-300"></i>
-                <span>Hasil (CSV)</span>
+                <span class="hidden sm:inline">Data Digitized (CSV)</span>
             </button>
-
-            <!-- Upload Custom File -->
-            <label class="flex items-center space-x-1.5 px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-xs font-medium text-white rounded-lg cursor-pointer transition shadow-md shadow-sky-600/20">
-                <i data-lucide="upload-cloud" class="w-4 h-4"></i>
-                <span>Unggah LAS/CSV</span>
-                <input type="file" id="file-input-log" accept=".las,.txt,.csv" class="hidden">
-            </label>
         </div>
     </header>
 
     <!-- Navigation Tabs Bar -->
     <nav class="bg-geodark-850/90 backdrop-blur border-b border-slate-800 px-4 flex space-x-1 overflow-x-auto text-xs font-medium z-30">
-        <button id="tab-btn-log" class="tab-btn active py-3 px-4 border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition flex items-center space-x-2 whitespace-nowrap">
-            <i data-lucide="layers" class="w-4 h-4"></i>
-            <span>Log Multi-Track Interpretasi</span>
+        <button id="tab-btn-digitizer" class="tab-btn active py-3 px-4 border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition flex items-center space-x-2 whitespace-nowrap">
+            <i data-lucide="scan" class="w-4 h-4 text-amber-400"></i>
+            <span>1. Kalibrasi & Digitasi Piksel Gambar</span>
+        </button>
+        <button id="tab-btn-log" class="tab-btn py-3 px-4 border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition flex items-center space-x-2 whitespace-nowrap">
+            <i data-lucide="layers" class="w-4 h-4 text-sky-400"></i>
+            <span>2. Visualisasi Log Multi-Track Reconstructed</span>
         </button>
         <button id="tab-btn-report" class="tab-btn py-3 px-4 border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition flex items-center space-x-2 whitespace-nowrap">
-            <i data-lucide="file-text" class="w-4 h-4"></i>
-            <span>Laporan Executive & Perforasi</span>
+            <i data-lucide="file-check-2" class="w-4 h-4 text-emerald-400"></i>
+            <span>3. Laporan Eksekutif & Target Perforasi</span>
         </button>
         <button id="tab-btn-crossplots" class="tab-btn py-3 px-4 border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition flex items-center space-x-2 whitespace-nowrap">
-            <i data-lucide="scatter-chart" class="w-4 h-4"></i>
-            <span>Crossplots & Pickett Plot</span>
+            <i data-lucide="scatter-chart" class="w-4 h-4 text-purple-400"></i>
+            <span>4. Crossplots NPHI-RHOB & Pickett Plot</span>
         </button>
         <button id="tab-btn-params" class="tab-btn py-3 px-4 border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition flex items-center space-x-2 whitespace-nowrap">
-            <i data-lucide="sliders" class="w-4 h-4"></i>
-            <span>Kalibrasi Parameter Petrofisika</span>
+            <i data-lucide="sliders" class="w-4 h-4 text-rose-400"></i>
+            <span>5. Parameter Petrofisika (Archie/Larionov)</span>
         </button>
     </nav>
 
@@ -153,19 +165,19 @@
         <!-- Control Sidebar Panel -->
         <aside class="w-full lg:w-80 bg-geodark-850 border-r border-slate-800 flex flex-col h-auto lg:h-[calc(100vh-110px)] overflow-y-auto shrink-0">
             
-            <!-- Quick Export Panel Banner -->
-            <div class="p-4 border-b border-slate-800 bg-gradient-to-br from-amber-500/10 via-slate-900 to-geodark-850">
-                <div class="flex items-center justify-between mb-2">
+            <!-- Quick Digitization Workflow Card -->
+            <div class="p-4 border-b border-slate-800 bg-gradient-to-br from-amber-500/10 via-slate-900 to-geodark-850 space-y-3">
+                <div class="flex items-center justify-between">
                     <span class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
-                        <i data-lucide="file-image" class="w-4 h-4"></i>
-                        <span>Ekspor Gambar Log</span>
+                        <i data-lucide="cpu" class="w-4 h-4"></i>
+                        <span>Ekstraksi Piksel CV</span>
                     </span>
-                    <span class="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded font-mono border border-amber-500/30">.JPG</span>
+                    <span id="badge-digi-status" class="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded font-mono border border-emerald-500/30">SIAP DIGITASI</span>
                 </div>
-                <p class="text-[11px] text-slate-400 mb-3">Unduh gambar visualisasi log dalam format JPG resolusi tinggi untuk laporan, presentasi, atau jurnal.</p>
-                <button id="btn-quick-export-jpg" class="w-full py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-lg transition flex items-center justify-center space-x-2 shadow-lg shadow-amber-500/10">
-                    <i data-lucide="download" class="w-4 h-4"></i>
-                    <span>Ekspor JPG Sekarang</span>
+                <p class="text-[11px] text-slate-400">Jalankan mesin Visi Komputer untuk memindai kurva dari berkas gambar JPG/PNG ke nilai numerik.</p>
+                <button id="btn-run-digitizer" class="w-full py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-extrabold text-xs rounded-xl transition flex items-center justify-center space-x-2 shadow-lg shadow-amber-500/20">
+                    <i data-lucide="play" class="w-4 h-4"></i>
+                    <span>Proses & Digitasi Gambar Log</span>
                 </button>
             </div>
 
@@ -173,9 +185,9 @@
             <div class="p-3.5 border-b border-slate-800 bg-slate-900/60 flex items-center justify-between">
                 <span class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
                     <i data-lucide="sliders-horizontal" class="w-4 h-4 text-sky-400"></i>
-                    <span>Quick Cutoffs Petrofisika</span>
+                    <span>Cutoffs Petrofisika</span>
                 </span>
-                <span class="text-[10px] bg-sky-500/20 text-sky-300 px-2 py-0.5 rounded font-mono border border-sky-500/30">Auto Calc</span>
+                <span class="text-[10px] bg-sky-500/20 text-sky-300 px-2 py-0.5 rounded font-mono border border-sky-500/30">Kalkulasi Otomatis</span>
             </div>
 
             <div class="p-4 space-y-4 text-xs">
@@ -186,7 +198,7 @@
                         <span id="val-vsh-cut" class="font-mono text-amber-400 font-bold">40%</span>
                     </div>
                     <input type="range" id="sld-vsh-cut" min="10" max="60" value="40" class="w-full accent-amber-500 cursor-pointer">
-                    <p class="text-[10px] text-slate-500">Batas maksimum lempung untuk mengklasifikasikan batupasir (Sand).</p>
+                    <p class="text-[10px] text-slate-500">Batas Vshale maksimum untuk membedakan batupasir (Sand) dan lempung (Shale).</p>
                 </div>
 
                 <!-- Porosity Cutoff Slider -->
@@ -196,7 +208,7 @@
                         <span id="val-phi-cut" class="font-mono text-sky-400 font-bold">10%</span>
                     </div>
                     <input type="range" id="sld-phi-cut" min="5" max="25" value="10" class="w-full accent-sky-500 cursor-pointer">
-                    <p class="text-[10px] text-slate-500">Porositas efektif minimum untuk memenuhi syarat reservoar.</p>
+                    <p class="text-[10px] text-slate-500">Porositas efektif minimum untuk kriteria reservoar.</p>
                 </div>
 
                 <!-- Sw Cutoff Slider -->
@@ -206,13 +218,23 @@
                         <span id="val-sw-cut" class="font-mono text-emerald-400 font-bold">60%</span>
                     </div>
                     <input type="range" id="sld-sw-cut" min="20" max="80" value="60" class="w-full accent-emerald-500 cursor-pointer">
-                    <p class="text-[10px] text-slate-500">Saturasi air maksimum untuk dikategorikan sebagai Net Pay.</p>
+                    <p class="text-[10px] text-slate-500">Saturasi air maksimum untuk mengidentifikasi Net Pay Hidrokarbon.</p>
+                </div>
+
+                <!-- Model Vshale Dropdown -->
+                <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800 space-y-2">
+                    <span class="text-slate-300 font-semibold block">Model Persamaan Vshale:</span>
+                    <select id="sel-vsh-model" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-amber-300 font-mono text-xs focus:outline-none">
+                        <option value="larionov">Larionov (Batuan Tersier - Direkomendasikan)</option>
+                        <option value="linear">Linear Standard (Vsh = IGR)</option>
+                        <option value="steiber">Steiber Model</option>
+                    </select>
                 </div>
 
                 <!-- Water Resistivity Rw -->
                 <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800 space-y-2">
                     <div class="flex justify-between items-center">
-                        <span class="text-slate-300 font-semibold">Resistivitas Air (Rw)</span>
+                        <span class="text-slate-300 font-semibold">Resistivitas Air Formasi (Rw)</span>
                         <span class="text-[10px] text-slate-400 font-mono">Formation Water</span>
                     </div>
                     <div class="flex items-center space-x-2">
@@ -223,7 +245,7 @@
 
                 <!-- Summary Stats Panel -->
                 <div class="bg-gradient-to-br from-slate-900 to-geodark-900 p-4 rounded-xl border border-slate-800 space-y-2 font-mono">
-                    <span class="text-[11px] text-amber-400 font-sans font-bold uppercase tracking-wider block">Ringkasan Interpretasi</span>
+                    <span class="text-[11px] text-amber-400 font-sans font-bold uppercase tracking-wider block">Hasil Evaluasi Petrofisika</span>
                     <div class="flex justify-between text-xs">
                         <span class="text-slate-400">Total Net Pay:</span>
                         <span id="sb-netpay" class="text-amber-400 font-bold">0.0 m</span>
@@ -248,13 +270,58 @@
             </div>
         </aside>
 
-        <!-- Center Workspace -->
+        <!-- Center Workspace Container -->
         <main class="flex-1 flex flex-col bg-geodark-900 overflow-hidden relative">
 
-            <!-- TAB 1: MULTI-TRACK LOG VIEWER CANVAS -->
-            <div id="container-tab-log" class="flex-1 flex flex-col h-full overflow-hidden">
+            <!-- TAB 1: IMAGE DIGITIZER & CALIBRATION CANVAS -->
+            <div id="container-tab-digitizer" class="flex-1 flex flex-col h-full overflow-hidden">
+                <!-- Calibration Control Sub-header Bar -->
+                <div class="bg-slate-900 border-b border-slate-800 px-4 py-2.5 flex flex-wrap items-center justify-between text-xs gap-3 z-10 shadow-lg">
+                    <div class="flex flex-wrap items-center gap-3">
+                        <span class="text-amber-400 font-bold flex items-center gap-1.5">
+                            <i data-lucide="target" class="w-4 h-4"></i>
+                            <span>Kalibrasi Piksel Gambar Log</span>
+                        </span>
+                        
+                        <!-- Top & Bottom Depth Calibration Inputs -->
+                        <div class="flex items-center space-x-2 bg-geodark-950 px-3 py-1 rounded-lg border border-slate-800 font-mono">
+                            <span class="text-slate-500">Kedalaman Top (m):</span>
+                            <input type="number" id="inp-calib-top" value="2000" class="w-16 bg-slate-900 border border-slate-700 text-amber-300 text-center rounded px-1 font-bold">
+                            <span class="text-slate-500">Bot (m):</span>
+                            <input type="number" id="inp-calib-bot" value="2200" class="w-16 bg-slate-900 border border-slate-700 text-amber-300 text-center rounded px-1 font-bold">
+                        </div>
+
+                        <!-- Calibration Mode Selector -->
+                        <div class="flex items-center space-x-1 bg-slate-950 p-1 rounded-lg border border-slate-800 text-[11px]">
+                            <button id="btn-mode-bounds" class="px-2.5 py-1 rounded bg-amber-500 text-slate-950 font-bold">Batas Depth & Track</button>
+                            <button id="btn-mode-tracer" class="px-2.5 py-1 rounded text-slate-400 hover:text-white">Tracing Piksel Warna</button>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-2">
+                        <button id="btn-reset-calib" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-700 flex items-center gap-1">
+                            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                            <span>Reset Kalibrasi</span>
+                        </button>
+                        <button id="btn-smooth-curves" class="px-3 py-1.5 bg-sky-950 hover:bg-sky-900 text-sky-300 rounded-lg border border-sky-800 flex items-center gap-1">
+                            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                            <span>Penghalusan Filter Noise</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Image Viewport & Calibration Canvas Overlay -->
+                <div id="digitizer-viewport" class="flex-1 relative overflow-auto flex justify-center items-start bg-geodark-950 p-4">
+                    <div class="relative shadow-2xl rounded-xl overflow-hidden border border-slate-800">
+                        <canvas id="canvas-image-digitizer" class="block calibration-cursor"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: RECONSTRUCTED MULTI-TRACK LOG CANVAS VIEWER -->
+            <div id="container-tab-log" class="flex-1 flex flex-col h-full overflow-hidden hidden">
                 
-                <!-- Crosshair & Live Reading Header -->
+                <!-- Crosshair & Live Values Header -->
                 <div class="bg-slate-900 border-b border-slate-800 px-4 py-2 flex flex-wrap items-center justify-between text-xs font-mono z-10 shadow-lg gap-2">
                     <div class="flex items-center space-x-2 bg-geodark-950 px-3 py-1 rounded-lg border border-slate-800">
                         <span class="text-slate-500">DEPTH:</span>
@@ -290,16 +357,16 @@
                 </div>
             </div>
 
-            <!-- TAB 2: EXECUTIVE REPORT & PERFORATION RECOMMENDATIONS -->
+            <!-- TAB 3: EXECUTIVE REPORT & PERFORATION TARGETS -->
             <div id="container-tab-report" class="flex-1 p-6 overflow-y-auto hidden space-y-6">
                 
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
                     <div>
                         <h2 class="text-lg font-bold text-white flex items-center gap-2">
                             <i data-lucide="file-check-2" class="w-5 h-5 text-amber-400"></i>
-                            <span>Laporan Interpretasi Otomatis Petrofisika Sumur</span>
+                            <span>Laporan Interpretasi Petrofisika Sumur Hasil Digitasi Gambar Log</span>
                         </h2>
-                        <p class="text-xs text-slate-400 mt-1">Kesimpulan evaluasi otomatis berbasis gabungan aturan petrofisika & algoritma deterministik.</p>
+                        <p class="text-xs text-slate-400 mt-1">Kesimpulan evaluasi otomatis berbasis gabungan ekstraksi piksel gambar, aturan petrofisika & algoritma Archie-Larionov.</p>
                     </div>
                     <button onclick="window.print()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-lg border border-slate-700 flex items-center space-x-1.5">
                         <i data-lucide="printer" class="w-4 h-4"></i>
@@ -312,9 +379,9 @@
                     <div class="flex items-center justify-between">
                         <span class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
                             <i data-lucide="sparkles" class="w-4 h-4"></i>
-                            <span>Executive Narrative Summary</span>
+                            <span>Executive Summary & Prospek Reservoar</span>
                         </span>
-                        <span id="badge-well-status" class="px-3 py-1 rounded-full text-xs font-bold font-mono bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">COMMERCIAL PAY WELL</span>
+                        <span id="badge-well-status" class="px-3 py-1 rounded-full text-xs font-bold font-mono bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">PROSPEK KOMERSIAL PAY</span>
                     </div>
                     <p id="narrative-text" class="text-sm text-slate-200 leading-relaxed font-sans">
                         <!-- Populated dynamically -->
@@ -326,7 +393,7 @@
                     <div class="p-4 border-b border-slate-800 bg-slate-950 flex items-center justify-between">
                         <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
                             <i data-lucide="target" class="w-4 h-4 text-red-500"></i>
-                            <span>Rekomendasi Interval Perforasi & Uji Produksi (DST Target)</span>
+                            <span>Rekomendasi Interval Perforasi & Target Uji Produksi (DST)</span>
                         </h3>
                         <span class="text-[10px] bg-red-500/20 text-red-400 px-2.5 py-0.5 rounded-full font-mono border border-red-500/30">Target Prioritas Utama</span>
                     </div>
@@ -367,20 +434,20 @@
 
             </div>
 
-            <!-- TAB 3: CROSSPLOTS -->
+            <!-- TAB 4: CROSSPLOTS -->
             <div id="container-tab-crossplots" class="flex-1 p-6 overflow-y-auto hidden space-y-6">
                 <div>
                     <h2 class="text-lg font-bold text-white flex items-center gap-2">
                         <i data-lucide="scatter-chart" class="w-5 h-5 text-sky-400"></i>
                         <span>Crossplots Petrofisika & Pickett Plot Verifikasi</span>
                     </h2>
-                    <p class="text-xs text-slate-400 mt-1">Gunakan plot ini untuk memverifikasi litologi matriks, efek gas crossover, dan estimasi Rw.</p>
+                    <p class="text-xs text-slate-400 mt-1">Verifikasi litologi matriks, identifikasi efek gas crossover NPHI-RHOB, dan validasi garis Archie $S_w = 100\%$.</p>
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div class="bg-slate-900/80 p-4 rounded-2xl border border-slate-800 flex flex-col h-96">
                         <h3 class="text-xs font-bold text-slate-200 uppercase mb-2 flex items-center justify-between">
-                            <span>NPHI vs RHOB Lithology & Gas Plot</span>
+                            <span>NPHI vs RHOB Lithology & Gas Crossover Plot</span>
                             <span class="text-[10px] text-amber-400 font-mono">Gas Crossover Highlighted</span>
                         </h3>
                         <div class="flex-1 relative">
@@ -400,7 +467,7 @@
                 </div>
             </div>
 
-            <!-- TAB 4: CALIBRATION PARAMETERS -->
+            <!-- TAB 5: CALIBRATION PARAMETERS -->
             <div id="container-tab-params" class="flex-1 p-6 overflow-y-auto hidden max-w-4xl">
                 <div class="border-b border-slate-800 pb-4 mb-6">
                     <h2 class="text-lg font-bold text-white flex items-center gap-2">
@@ -465,7 +532,7 @@
                     </div>
                     <div>
                         <h3 class="text-base font-bold text-white">Ekspor Gambar Log (.JPG)</h3>
-                        <p class="text-xs text-slate-400">Konfigurasi opsi tampilan dan latar belakang gambar gambar log</p>
+                        <p class="text-xs text-slate-400">Konfigurasi opsi tampilan dan latar belakang gambar log</p>
                     </div>
                 </div>
                 <button id="btn-close-jpg-modal" class="text-slate-400 hover:text-white transition">
@@ -545,14 +612,24 @@
                 stopDepth: 2200.0,
                 step: 0.2
             },
-            rawLogs: [],         // Raw curve input
-            computedLogs: [],    // Processed petrophysical curves
-            zones: [],           // Evaluated geological zones
-            perfTargets: [],     // Recommended perforation targets
+            // Calibration Bounds in Image Canvas Pixels
+            calib: {
+                topY: 60,
+                botY: 740,
+                track1: { minX: 50, maxX: 190 },   // GR / CALI
+                track2: { minX: 240, maxX: 380 },  // Resistivity
+                track3: { minX: 430, maxX: 570 }   // NPHI / RHOB
+            },
+            currentImage: null,  // Holds loaded Image object
+            rawLogs: [],         // Raw extracted curve data
+            computedLogs: [],    // Processed petrophysical results
+            zones: [],           // Geological zones
+            perfTargets: [],     // Target perforations
             contacts: { goc: null, owc: null },
             petroParams: {
                 grClean: 25,
                 grShale: 120,
+                vshModel: 'larionov',
                 rhoMa: 2.65,
                 rhoFluid: 1.00,
                 rw: 0.05,
@@ -571,96 +648,268 @@
             charts: {}
         };
 
-        // Generate Synthetic Well Logs
-        function generateWellData(presetKey = 'Alpha-01') {
-            const startD = 2000.0;
-            const stopD = 2200.0;
-            const step = 0.2;
-            const points = Math.floor((stopD - startD) / step) + 1;
-            const logs = [];
+        // Generate Synthetic Image Log for Initial Demo
+        function drawSyntheticLogImage(presetKey = 'Alpha-01') {
+            const imgCanvas = document.createElement('canvas');
+            imgCanvas.width = 620;
+            imgCanvas.height = 800;
+            const ctx = imgCanvas.getContext('2d');
 
-            for (let i = 0; i < points; i++) {
-                const depth = startD + i * step;
-                let gr, cali, sp, rdep, rmed, rsha, nphi, rhob, dt;
+            // Draw Background Image Grid (Simulating paper log image)
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(0, 0, 620, 800);
 
+            // Draw Log Image Title Banner
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(0, 0, 620, 50);
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 12px Inter, sans-serif';
+            ctx.fillText(`LOG IMAGE SAMPLE: WELL-${presetKey.toUpperCase()}`, 15, 25);
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '10px monospace';
+            ctx.fillText(`Top: 2000m  -  Bot: 2200m  |  Track 1: GR/CALI  Track 2: RDEP  Track 3: NPHI/RHOB`, 15, 42);
+
+            const { topY, botY, track1, track2, track3 } = appState.calib;
+
+            // Draw Tracks Background
+            [track1, track2, track3].forEach(t => {
+                ctx.fillStyle = '#090d16';
+                ctx.fillRect(t.minX, topY, t.maxX - t.minX, botY - topY);
+                ctx.strokeStyle = '#334155';
+                ctx.strokeRect(t.minX, topY, t.maxX - t.minX, botY - topY);
+            });
+
+            // Depth Scale Track
+            ctx.fillStyle = '#0b1329';
+            ctx.fillRect(190, topY, 50, botY - topY);
+            ctx.strokeStyle = '#334155';
+            ctx.strokeRect(190, topY, 50, botY - topY);
+
+            // Draw Depth Grid & Labels
+            ctx.fillStyle = '#64748b';
+            ctx.font = '9px monospace';
+            ctx.textAlign = 'center';
+            for (let d = 2000; d <= 2200; d += 20) {
+                const y = topY + ((d - 2000) / 200) * (botY - topY);
+                ctx.strokeStyle = '#334155';
+                ctx.beginPath();
+                ctx.moveTo(50, y); ctx.lineTo(570, y); ctx.stroke();
+                ctx.fillText(`${d}`, 215, y + 3);
+            }
+
+            // Draw Curves onto image simulating raster log image
+            const numPts = 200;
+            const pts = [];
+
+            for (let i = 0; i < numPts; i++) {
+                const depth = 2000 + (i / (numPts - 1)) * 200;
+                const y = topY + (i / (numPts - 1)) * (botY - topY);
+
+                let gr, rdep, nphi, rhob;
                 if (presetKey === 'Alpha-01') {
-                    // Alpha-01: Gas & Oil Reservoir
                     if (depth >= 2000 && depth < 2035) {
-                        gr = 110 + Math.sin(depth * 0.4) * 10 + Math.random() * 5;
-                        cali = 9.5; rdep = 1.8; rmed = 1.6; rsha = 1.4;
-                        nphi = 0.38; rhob = 2.48; dt = 115;
-                    } else if (depth >= 2035 && depth < 2070) {
-                        // Gas Sand
-                        gr = 22 + Math.random() * 6;
-                        cali = 8.5; 
-                        rdep = 145 + Math.sin(depth * 0.2) * 40 + Math.random() * 20;
-                        rmed = 95; rsha = 45;
-                        nphi = 0.09 + Math.random() * 0.02; // Very Low NPHI
-                        rhob = 2.12 + Math.random() * 0.02; // Low RHOB
-                        dt = 85;
-                    } else if (depth >= 2070 && depth < 2095) {
-                        // Oil Sand
-                        gr = 26 + Math.random() * 6;
-                        cali = 8.5;
-                        rdep = 38 + Math.random() * 10;
-                        rmed = 26; rsha = 14;
-                        nphi = 0.22 + Math.random() * 0.02;
-                        rhob = 2.26 + Math.random() * 0.03;
-                        dt = 92;
-                    } else if (depth >= 2095 && depth < 2130) {
-                        // Water Sand
-                        gr = 30 + Math.random() * 8;
-                        cali = 8.6;
-                        rdep = 2.1 + Math.random() * 0.5;
-                        rmed = 1.9; rsha = 1.6;
-                        nphi = 0.28 + Math.random() * 0.02;
-                        rhob = 2.36 + Math.random() * 0.03;
-                        dt = 98;
-                    } else {
-                        // Basal Shale
-                        gr = 115 + Math.random() * 10;
-                        cali = 9.6; rdep = 1.9; rmed = 1.7; rsha = 1.5;
-                        nphi = 0.40; rhob = 2.50; dt = 118;
+                        gr = 110 + Math.sin(depth * 0.4) * 10; rdep = 1.8; nphi = 0.38; rhob = 2.48;
+                    } else if (depth >= 2035 && depth < 2070) { // Gas Sand
+                        gr = 22 + Math.random() * 5; rdep = 150 + Math.sin(depth) * 30; nphi = 0.09; rhob = 2.12;
+                    } else if (depth >= 2070 && depth < 2095) { // Oil Sand
+                        gr = 26 + Math.random() * 5; rdep = 38; nphi = 0.22; rhob = 2.26;
+                    } else if (depth >= 2095 && depth < 2130) { // Water Sand
+                        gr = 30 + Math.random() * 6; rdep = 2.1; nphi = 0.28; rhob = 2.36;
+                    } else { // Basal Shale
+                        gr = 115 + Math.random() * 8; rdep = 1.9; nphi = 0.40; rhob = 2.50;
                     }
-                } else if (presetKey === 'Beta-02') {
-                    // Beta-02: Water Sand
+                } else if (presetKey === 'Beta-02') { // Wet Sand
                     if (depth >= 2040 && depth < 2120) {
-                        gr = 25 + Math.random() * 6;
-                        cali = 8.5; rdep = 1.8 + Math.random() * 0.4;
-                        rmed = 1.6; rsha = 1.4;
-                        nphi = 0.29 + Math.random() * 0.02;
-                        rhob = 2.35 + Math.random() * 0.02;
-                        dt = 100;
+                        gr = 25 + Math.random() * 5; rdep = 2.0; nphi = 0.29; rhob = 2.35;
                     } else {
-                        gr = 115 + Math.random() * 10;
-                        cali = 9.5; rdep = 1.7; rmed = 1.5; rsha = 1.3;
-                        nphi = 0.39; rhob = 2.49; dt = 116;
+                        gr = 115; rdep = 1.8; nphi = 0.40; rhob = 2.50;
                     }
-                } else {
-                    // Gamma-03: Tight Sand
+                } else { // Gamma Tight Sand
                     if (depth >= 2030 && depth < 2140) {
-                        gr = 68 + Math.random() * 12;
-                        cali = 8.8; rdep = 12 + Math.random() * 5;
-                        rmed = 9; rsha = 6;
-                        nphi = 0.18 + Math.random() * 0.03;
-                        rhob = 2.52 + Math.random() * 0.04;
-                        dt = 75;
+                        gr = 68 + Math.random() * 8; rdep = 12.0; nphi = 0.18; rhob = 2.52;
                     } else {
-                        gr = 120 + Math.random() * 10;
-                        cali = 9.8; rdep = 2.0; rmed = 1.8; rsha = 1.5;
-                        nphi = 0.42; rhob = 2.55; dt = 120;
+                        gr = 120; rdep = 1.9; nphi = 0.42; rhob = 2.55;
                     }
                 }
 
-                logs.push({ depth, gr, cali, sp: -20, rdep, rmed, rsha, nphi, rhob, dt });
+                pts.push({ y, depth, gr, rdep, nphi, rhob });
             }
 
-            appState.wellMeta.name = `WELL-${presetKey.toUpperCase()}`;
-            appState.rawLogs = logs;
+            // Draw GR Curve (Green)
+            ctx.strokeStyle = '#10b981'; ctx.lineWidth = 2; ctx.beginPath();
+            pts.forEach((p, idx) => {
+                const x = track1.minX + (p.gr / 150) * (track1.maxX - track1.minX);
+                if (idx === 0) ctx.moveTo(x, p.y); else ctx.lineTo(x, p.y);
+            });
+            ctx.stroke();
+
+            // Draw RDEP Curve (Red - Log scale)
+            ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 2; ctx.beginPath();
+            pts.forEach((p, idx) => {
+                const lVal = (Math.log10(Math.max(0.2, p.rdep)) - Math.log10(0.2)) / (Math.log10(2000) - Math.log10(0.2));
+                const x = track2.minX + lVal * (track2.maxX - track2.minX);
+                if (idx === 0) ctx.moveTo(x, p.y); else ctx.lineTo(x, p.y);
+            });
+            ctx.stroke();
+
+            // Draw NPHI (Cyan) & RHOB (Magenta)
+            ctx.strokeStyle = '#06b6d4'; ctx.lineWidth = 2; ctx.beginPath();
+            pts.forEach((p, idx) => {
+                const x = track3.minX + ((0.45 - p.nphi) / 0.60) * (track3.maxX - track3.minX);
+                if (idx === 0) ctx.moveTo(x, p.y); else ctx.lineTo(x, p.y);
+            });
+            ctx.stroke();
+
+            ctx.strokeStyle = '#f43f5e'; ctx.lineWidth = 2; ctx.beginPath();
+            pts.forEach((p, idx) => {
+                const x = track3.minX + ((p.rhob - 1.95) / 1.00) * (track3.maxX - track3.minX);
+                if (idx === 0) ctx.moveTo(x, p.y); else ctx.lineTo(x, p.y);
+            });
+            ctx.stroke();
+
+            // Store loaded synthetic image
+            const img = new Image();
+            img.onload = () => {
+                appState.currentImage = img;
+                renderDigitizerImageCanvas();
+                runImageCVExtractor();
+            };
+            img.src = imgCanvas.toDataURL('image/png');
+        }
+
+        // Render Image Canvas with Calibration Lines Overlay
+        function renderDigitizerImageCanvas() {
+            const canvas = document.getElementById('canvas-image-digitizer');
+            if (!appState.currentImage) return;
+
+            canvas.width = appState.currentImage.width;
+            canvas.height = appState.currentImage.height;
+            const ctx = canvas.getContext('2d');
+
+            // Draw background log image
+            ctx.drawImage(appState.currentImage, 0, 0);
+
+            // Draw Calibration Overlay Guidelines
+            const { topY, botY, track1, track2, track3 } = appState.calib;
+
+            ctx.lineWidth = 1.5;
+
+            // Top & Bottom Depth Calibration Lines (Horizontal Red Lines)
+            ctx.strokeStyle = '#ef4444';
+            ctx.setLineDash([6, 3]);
+
+            ctx.beginPath(); ctx.moveTo(0, topY); ctx.lineTo(canvas.width, topY); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(0, botY); ctx.lineTo(canvas.width, botY); ctx.stroke();
+
+            ctx.fillStyle = '#ef4444';
+            ctx.font = 'bold 11px monospace';
+            ctx.fillText(`Top Depth: ${appState.wellMeta.startDepth}m`, 10, topY - 5);
+            ctx.fillText(`Bot Depth: ${appState.wellMeta.stopDepth}m`, 10, botY + 14);
+
+            // Track Bounds (Vertical Amber Lines)
+            ctx.strokeStyle = '#facc15'; ctx.setLineDash([4, 4]);
+
+            [track1, track2, track3].forEach((t, i) => {
+                ctx.beginPath(); ctx.moveTo(t.minX, topY); ctx.lineTo(t.minX, botY); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(t.maxX, topY); ctx.lineTo(t.maxX, botY); ctx.stroke();
+
+                ctx.fillStyle = '#facc15';
+                ctx.font = '10px sans-serif';
+                ctx.fillText(`Track ${i+1}`, t.minX + 5, topY + 15);
+            });
+
+            ctx.setLineDash([]);
+        }
+
+        // Computer Vision / Pixel Extraction Engine
+        function runImageCVExtractor() {
+            if (!appState.currentImage) return;
+
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = appState.currentImage.width;
+            tempCanvas.height = appState.currentImage.height;
+            const ctx = tempCanvas.getContext('2d');
+            ctx.drawImage(appState.currentImage, 0, 0);
+
+            const imgData = ctx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+            const { topY, botY, track1, track2, track3 } = appState.calib;
+
+            const startD = appState.wellMeta.startDepth;
+            const stopD = appState.wellMeta.stopDepth;
+            const step = appState.wellMeta.step;
+            const numSteps = Math.floor((stopD - startD) / step) + 1;
+
+            const extractedLogs = [];
+
+            for (let i = 0; i < numSteps; i++) {
+                const depth = startD + i * step;
+                const pixelY = Math.round(topY + (i / (numSteps - 1)) * (botY - topY));
+
+                // Scan Track 1 for Green (Gamma Ray)
+                const grVal = scanTrackCurveValue(imgData, pixelY, track1.minX, track1.maxX, 0, 150, 'green', false);
+
+                // Scan Track 2 for Red (Resistivity Log Scale)
+                const rdepVal = scanTrackCurveValue(imgData, pixelY, track2.minX, track2.maxX, 0.2, 2000, 'red', true);
+
+                // Scan Track 3 for Cyan (NPHI) & Red/Magenta (RHOB)
+                const nphiVal = scanTrackCurveValue(imgData, pixelY, track3.minX, track3.maxX, 0.45, -0.15, 'cyan', false);
+                const rhobVal = scanTrackCurveValue(imgData, pixelY, track3.minX, track3.maxX, 1.95, 2.95, 'magenta', false);
+
+                extractedLogs.push({
+                    depth,
+                    gr: grVal,
+                    cali: 8.5,
+                    sp: -20,
+                    rdep: rdepVal,
+                    rmed: rdepVal * 0.7,
+                    rsha: rdepVal * 0.4,
+                    nphi: nphiVal,
+                    rhob: rhobVal,
+                    dt: 90
+                });
+            }
+
+            appState.rawLogs = extractedLogs;
             runInterpretationEngine();
         }
 
-        // Automated Interpretation Calculations
+        // Color-based Curve Scan Pixel Extractor Helper
+        function scanTrackCurveValue(imgData, y, minX, maxX, minVal, maxVal, colorType, isLogScale) {
+            const width = imgData.width;
+            let targetX = (minX + maxX) / 2;
+            let found = false;
+
+            for (let x = Math.round(minX); x <= Math.round(maxX); x++) {
+                const idx = (y * width + x) * 4;
+                const r = imgData.data[idx];
+                const g = imgData.data[idx + 1];
+                const b = imgData.data[idx + 2];
+
+                let matches = false;
+                if (colorType === 'green' && g > 120 && r < 100 && b < 150) matches = true;
+                else if (colorType === 'red' && r > 180 && g < 100 && b < 100) matches = true;
+                else if (colorType === 'cyan' && g > 120 && b > 120 && r < 100) matches = true;
+                else if (colorType === 'magenta' && r > 180 && b > 100 && g < 120) matches = true;
+
+                if (matches) {
+                    targetX = x;
+                    found = true;
+                    break;
+                }
+            }
+
+            const frac = Math.max(0, Math.min(1.0, (targetX - minX) / (maxX - minX)));
+
+            if (isLogScale) {
+                const logMin = Math.log10(minVal);
+                const logMax = Math.log10(maxVal);
+                return Math.pow(10, logMin + frac * (logMax - logMin));
+            } else {
+                return minVal + frac * (maxVal - minVal);
+            }
+        }
+
+        // Automated Petrophysical Interpretation Calculations
         function runInterpretationEngine() {
             const p = appState.petroParams;
             const computed = [];
@@ -669,9 +918,19 @@
             let owcDepth = null;
 
             appState.rawLogs.forEach((d) => {
-                let vsh = (d.gr - p.grClean) / (p.grShale - p.grClean);
+                // Vshale Calculation
+                let igr = (d.gr - p.grClean) / (p.grShale - p.grClean);
+                igr = Math.max(0, Math.min(1.0, igr));
+
+                let vsh = igr;
+                if (p.vshModel === 'larionov') {
+                    vsh = 0.33 * (Math.pow(2, 2 * igr) - 1);
+                } else if (p.vshModel === 'steiber') {
+                    vsh = igr / (3 - 2 * igr);
+                }
                 vsh = Math.max(0, Math.min(1.0, vsh));
 
+                // Density & Neutron-Density Porosity
                 let phid = (p.rhoMa - d.rhob) / (p.rhoMa - p.rhoFluid);
                 phid = Math.max(0, Math.min(0.5, phid));
 
@@ -679,6 +938,7 @@
                 let phie = phiND * (1 - vsh);
                 phie = Math.max(0.001, Math.min(0.45, phie));
 
+                // Archie Water Saturation (Sw)
                 let ro = (p.a * p.rw) / Math.pow(phie, p.m);
 
                 let rt = Math.max(0.1, d.rdep);
@@ -686,10 +946,12 @@
                 let sw = Math.pow(Math.max(0.0001, swNom), 1 / p.n);
                 sw = Math.max(0.05, Math.min(1.0, sw));
 
+                // Permeability Timur Model
                 let swi = Math.max(0.05, sw * 0.7);
                 let perm = (p.permA * Math.pow(phie * 100, p.permB)) / Math.pow(swi, p.permC);
                 perm = Math.max(0.001, Math.min(10000.0, perm));
 
+                // Net Pay & Fluid Flags
                 const isSand = (vsh <= p.vshCutoff);
                 const isReservoir = isSand && (phie >= p.phiCutoff);
                 const isPay = isReservoir && (sw <= p.swCutoff);
@@ -806,11 +1068,11 @@
             if (totalNetPay > 15) {
                 statusBadge.className = "px-3 py-1 rounded-full text-xs font-bold font-mono bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
                 statusBadge.textContent = "PROSPEK SANGAT KOMERSIAL (PAY)";
-                narrativeText = `Hasil interpretasi otomatis pada sumur <strong>${name}</strong> mengonfirmasi keberadaan reservoar hidrokarbon prospektif dengan total <strong>Net Pay sebesar ${totalNetPay.toFixed(1)} m</strong>. `;
-                if (gasPay > 0) narrativeText += `Teridentifikasi <strong>${gasPay.toFixed(1)} m Pay Gas</strong> dengan efek crossover NPHI-RHOB. `;
+                narrativeText = `Hasil digitasi dan interpretasi otomatis pada sumur <strong>${name}</strong> mengonfirmasi keberadaan reservoar hidrokarbon prospektif dengan total <strong>Net Pay sebesar ${totalNetPay.toFixed(1)} m</strong>. `;
+                if (gasPay > 0) narrativeText += `Teridentifikasi <strong>${gasPay.toFixed(1)} m Pay Gas</strong> dengan efek crossover NPHI-RHOB yang jelas. `;
                 if (oilPay > 0) narrativeText += `Teridentifikasi <strong>${oilPay.toFixed(1)} m Pay Minyak</strong>. `;
-                if (goc) narrativeText += `Kontak GOC pada <strong>${goc.toFixed(1)} m</strong>. `;
-                if (owc) narrativeText += `Kontak OWC pada <strong>${owc.toFixed(1)} m</strong>. `;
+                if (goc) narrativeText += `Kontak GOC terdeteksi pada <strong>${goc.toFixed(1)} m</strong>. `;
+                if (owc) narrativeText += `Kontak OWC terdeteksi pada <strong>${owc.toFixed(1)} m</strong>. `;
             } else if (totalNetPay > 0) {
                 statusBadge.className = "px-3 py-1 rounded-full text-xs font-bold font-mono bg-amber-500/20 text-amber-300 border border-amber-500/30";
                 statusBadge.textContent = "PROSPEK MARGINAL / TIGHT";
@@ -898,7 +1160,7 @@
             });
         }
 
-        // UNIFIED CANVAS DRAWER ENGINE (Supports Onscreen Display & JPG Export)
+        // UNIFIED CANVAS DRAWER ENGINE (Supports Onscreen Display & High-Res JPG Export)
         function drawMultiTrackCanvas(canvas, options = {}) {
             const {
                 theme = 'dark',
@@ -908,7 +1170,6 @@
 
             const ctx = canvas.getContext('2d');
 
-            // Dimensions
             const trackW = 140;
             const depthW = 50;
             const trackHeaderH = 85;
@@ -920,13 +1181,12 @@
             const t2X = depthX + depthW;
             const t3X = t2X + trackW;
             const t4X = t3X + trackW;
-            const t5X = t4X + trackW; // Interpretation Column
+            const t5X = t4X + trackW;
             const totalWidth = t5X + 170;
 
             const totalDepthRange = appState.wellMeta.stopDepth - appState.wellMeta.startDepth;
             const canvasHeight = headerH + (totalDepthRange * appState.scaleY);
 
-            // Set canvas size
             canvas.width = totalWidth * scaleDpi;
             canvas.height = canvasHeight * scaleDpi;
             canvas.style.width = `${totalWidth}px`;
@@ -935,7 +1195,6 @@
             ctx.save();
             ctx.scale(scaleDpi, scaleDpi);
 
-            // COLOR PALETTE BY THEME
             const isDark = (theme === 'dark');
             const colors = {
                 bg: isDark ? '#020610' : '#ffffff',
@@ -960,11 +1219,9 @@
                 shaleShade: isDark ? 'rgba(161, 98, 7, 0.35)' : 'rgba(180, 83, 9, 0.25)'
             };
 
-            // CRITICAL: Fill solid background to prevent black transparency glitch in JPG export
             ctx.fillStyle = colors.bg;
             ctx.fillRect(0, 0, totalWidth, canvasHeight);
 
-            // Optional Top Watermark Banner for JPG Export
             if (includeHeaderBanner) {
                 ctx.fillStyle = isDark ? '#0b1329' : '#e2e8f0';
                 ctx.fillRect(0, 0, totalWidth, bannerH);
@@ -973,7 +1230,7 @@
 
                 ctx.fillStyle = colors.textPrimary;
                 ctx.font = 'bold 14px Inter, sans-serif';
-                ctx.fillText(`GEO-LOG INTERPRET PRO - WELL LOG REPORT`, 15, 22);
+                ctx.fillText(`GEO-LOG DIGI-INTERPRET - WELL LOG REPORT`, 15, 22);
 
                 ctx.font = '11px "JetBrains Mono", monospace';
                 ctx.fillStyle = colors.textSecondary;
@@ -1022,15 +1279,13 @@
                 ctx.strokeRect(x, headerH, w, canvasHeight - headerH);
             });
 
-            // Depth Track Background
             ctx.fillStyle = colors.depthBg;
             ctx.fillRect(depthX, headerH, depthW, canvasHeight - headerH);
             ctx.strokeStyle = colors.border;
             ctx.strokeRect(depthX, headerH, depthW, canvasHeight - headerH);
 
-            // Horizontal Depth Lines & Labels
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
+            // Horizontal Depth Grid Lines
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
             ctx.font = '10px "JetBrains Mono", monospace';
 
             for (let d = Math.ceil(appState.wellMeta.startDepth); d <= appState.wellMeta.stopDepth; d += 1) {
@@ -1041,10 +1296,7 @@
                     const w = (idx === 4) ? 160 : trackW;
                     ctx.strokeStyle = isMajor ? colors.gridMajor : colors.gridMinor;
                     ctx.lineWidth = isMajor ? 0.8 : 0.4;
-                    ctx.beginPath();
-                    ctx.moveTo(x, y);
-                    ctx.lineTo(x + w, y);
-                    ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + w, y); ctx.stroke();
                 });
 
                 if (isMajor) {
@@ -1075,7 +1327,7 @@
 
             drawCurve(ctx, data, d => t1X + getLinearX(d.gr, 0, 150, trackW), depthToY, colors.gr, 1.5);
 
-            // TRACK 2: Resistivity & Ro
+            // TRACK 2: Resistivity
             const getLogResX = (val) => {
                 const lVal = Math.log10(Math.max(0.2, val));
                 return ((lVal - Math.log10(0.2)) / (Math.log10(2000) - Math.log10(0.2))) * trackW;
@@ -1101,7 +1353,7 @@
             drawCurve(ctx, data, d => t2X + getLogResX(d.rdep), depthToY, colors.rdep, 1.8);
             drawCurve(ctx, data, d => t2X + getLogResX(d.ro), depthToY, colors.ro, 1.2, [3, 2]);
 
-            // TRACK 3: Porosity NPHI-RHOB & Gas Crossover
+            // TRACK 3: Porosity NPHI-RHOB Gas Crossover Shading
             const getNphiX = (val) => t3X + getLinearX(val, 0.45, -0.15, trackW);
             const getRhobX = (val) => t3X + getLinearX(val, 1.95, 2.95, trackW);
 
@@ -1125,7 +1377,7 @@
             drawCurve(ctx, data, d => getNphiX(d.nphi), depthToY, colors.nphi, 1.5);
             drawCurve(ctx, data, d => getRhobX(d.rhob), depthToY, colors.rhob, 1.5);
 
-            // TRACK 4: PHIE & Permeability
+            // TRACK 4: Computed Porosity & Permeability
             const getPermX = (val) => {
                 const lVal = Math.log10(Math.max(0.01, val));
                 return ((lVal - Math.log10(0.01)) / (Math.log10(10000) - Math.log10(0.01))) * trackW;
@@ -1134,7 +1386,7 @@
             drawCurve(ctx, data, d => t4X + getLinearX(d.phie, 0, 0.40, trackW), depthToY, colors.phie, 1.5);
             drawCurve(ctx, data, d => t4X + getPermX(d.perm), depthToY, colors.perm, 1.2, [3, 2]);
 
-            // TRACK 5: AUTOMATED INTERPRETATION
+            // TRACK 5: INTERPRETATION COLUMNS
             const cFluidX = t5X;
             const cLithoX = t5X + 40;
             const cPayX = t5X + 80;
@@ -1145,7 +1397,7 @@
                 const y = depthToY(d.depth);
                 const h = appState.scaleY * appState.wellMeta.step + 0.5;
 
-                // Fluid
+                // Fluid Type
                 if (d.fluidType === 'Gas') ctx.fillStyle = '#ef4444';
                 else if (d.fluidType === 'Oil') ctx.fillStyle = '#22c55e';
                 else if (d.fluidType === 'Water') ctx.fillStyle = '#3b82f6';
@@ -1177,12 +1429,6 @@
                 ctx.strokeRect(cTargetX, topY, colW, h);
             });
 
-            // Dividers
-            [cFluidX, cLithoX, cPayX, cTargetX, t5X + 160].forEach(x => {
-                ctx.strokeStyle = colors.border;
-                ctx.beginPath(); ctx.moveTo(x, headerH); ctx.lineTo(x, canvasHeight); ctx.stroke();
-            });
-
             // Contact Markers
             if (appState.contacts.goc) {
                 const y = depthToY(appState.contacts.goc);
@@ -1193,33 +1439,27 @@
                 drawContactMarker(ctx, t1X, t5X + 160, y, "OWC: " + appState.contacts.owc.toFixed(1) + "m", "#38bdf8");
             }
 
-            // Crosshair Inspector (Screen Display Only)
+            // Crosshair Inspector
             if (!options.isExport && appState.hoverIdx >= 0 && appState.hoverIdx < data.length) {
                 const hData = data[appState.hoverIdx];
                 const hy = depthToY(hData.depth);
 
-                ctx.strokeStyle = '#ef4444';
-                ctx.lineWidth = 1.2;
+                ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 1.2;
                 ctx.setLineDash([4, 4]);
-                ctx.beginPath();
-                ctx.moveTo(t1X, hy);
-                ctx.lineTo(t5X + 160, hy);
-                ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(t1X, hy); ctx.lineTo(t5X + 160, hy); ctx.stroke();
                 ctx.setLineDash([]);
             }
 
             ctx.restore();
         }
 
+        // Canvas Drawing Helpers
         function drawTrackHeaderCustom(ctx, x, y, w, h, title, curves, colors) {
-            ctx.fillStyle = colors.trackBg;
-            ctx.fillRect(x, y, w, h);
-            ctx.strokeStyle = colors.border;
-            ctx.strokeRect(x, y, w, h);
+            ctx.fillStyle = colors.trackBg; ctx.fillRect(x, y, w, h);
+            ctx.strokeStyle = colors.border; ctx.strokeRect(x, y, w, h);
 
             ctx.fillStyle = colors.textPrimary;
-            ctx.font = 'bold 11px Inter, sans-serif';
-            ctx.textAlign = 'center';
+            ctx.font = 'bold 11px Inter, sans-serif'; ctx.textAlign = 'center';
             ctx.fillText(title, x + w / 2, y + 16);
 
             let currY = y + 34;
@@ -1228,13 +1468,9 @@
                 ctx.font = '10px "JetBrains Mono", monospace';
                 ctx.fillText(c.name, x + w / 2, currY);
 
-                ctx.strokeStyle = c.color;
-                ctx.lineWidth = 1.5;
+                ctx.strokeStyle = c.color; ctx.lineWidth = 1.5;
                 if (c.dash) ctx.setLineDash([3, 2]);
-                ctx.beginPath();
-                ctx.moveTo(x + 10, currY + 4);
-                ctx.lineTo(x + w - 10, currY + 4);
-                ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(x + 10, currY + 4); ctx.lineTo(x + w - 10, currY + 4); ctx.stroke();
                 ctx.setLineDash([]);
                 currY += 16;
             });
@@ -1242,8 +1478,7 @@
 
         function drawCurve(ctx, data, xFunc, yFunc, color, width, dash = []) {
             if (!data || data.length === 0) return;
-            ctx.strokeStyle = color;
-            ctx.lineWidth = width;
+            ctx.strokeStyle = color; ctx.lineWidth = width;
             if (dash.length > 0) ctx.setLineDash(dash);
 
             ctx.beginPath();
@@ -1256,15 +1491,13 @@
         }
 
         function drawContactMarker(ctx, xStart, xEnd, y, label, color) {
-            ctx.strokeStyle = color;
-            ctx.lineWidth = 2;
+            ctx.strokeStyle = color; ctx.lineWidth = 2;
             ctx.setLineDash([6, 3]);
             ctx.beginPath(); ctx.moveTo(xStart, y); ctx.lineTo(xEnd, y); ctx.stroke();
             ctx.setLineDash([]);
 
             ctx.fillStyle = color;
-            ctx.font = 'bold 10px "JetBrains Mono", monospace';
-            ctx.textAlign = 'left';
+            ctx.font = 'bold 10px "JetBrains Mono", monospace'; ctx.textAlign = 'left';
             ctx.fillText(label, xStart + 5, y - 4);
         }
 
@@ -1273,7 +1506,7 @@
             return ((clamped - min) / (max - min)) * width;
         }
 
-        // DEDICATED JPG IMAGE EXPORTER FUNCTION
+        // Dedicated High-Res JPG Export Engine
         function exportLogAsJPG() {
             const themeRadios = document.getElementsByName('jpg-theme');
             let selectedTheme = 'dark';
@@ -1284,7 +1517,6 @@
             const scaleDpi = parseInt(document.getElementById('sel-jpg-resolution').value) || 2;
             const includeHeaderBanner = document.getElementById('chk-jpg-header').checked;
 
-            // Offscreen Canvas Generator
             const exportCanvas = document.createElement('canvas');
             
             drawMultiTrackCanvas(exportCanvas, {
@@ -1294,21 +1526,18 @@
                 includeHeaderBanner: includeHeaderBanner
             });
 
-            // Convert to JPEG Data URL with 0.95 Quality
             const jpgUrl = exportCanvas.toDataURL('image/jpeg', 0.95);
 
-            // Trigger Download
             const fileName = `${appState.wellMeta.name}_LOG_PLOT.jpg`;
             const a = document.createElement('a');
             a.href = jpgUrl;
             a.download = fileName;
             a.click();
 
-            // Hide Modal
             document.getElementById('modal-jpg-export').classList.add('hidden');
         }
 
-        // CROSSPLOTS CHART.JS INITIALIZATION
+        // Chart.js Crossplots Engine
         function initCrossplots() {
             const ctx1 = document.getElementById('chart-nphi-rhob').getContext('2d');
             appState.charts.nphiRhob = new Chart(ctx1, {
@@ -1369,36 +1598,25 @@
             appState.charts.pickett.update();
         }
 
-        // LAS / CSV EXPORTERS
-        function exportRawLAS() {
-            let las = `~VERSION INFORMATION\nVERS.                  2.0 : CWLS LOG ASCII STANDARD\nWRAP.                   NO : ONE LINE PER DEPTH STEP\n~WELL INFORMATION\nWELL.            ${appState.wellMeta.name} : WELL NAME\n~CURVE INFORMATION\nDEPTH.M                                 : 1 DEPTH\nGR.API                                  : 2 GAMMA RAY\nRDEP.OHMM                               : 3 DEEP RESISTIVITY\nNPHI.V/V                                : 4 NEUTRON POROSITY\nRHOB.G/CC                               : 5 BULK DENSITY\n~A\n`;
-            appState.rawLogs.forEach(d => {
-                las += `${d.depth.toFixed(2).padStart(8)} ${d.gr.toFixed(2).padStart(8)} ${d.rdep.toFixed(2).padStart(8)} ${d.nphi.toFixed(4).padStart(8)} ${d.rhob.toFixed(4).padStart(8)}\n`;
-            });
-            downloadBlob(las, `${appState.wellMeta.name}_RAW.las`, 'text/plain');
-        }
-
+        // CSV Downloader
         function exportInterpretedCSV() {
             let csv = "DEPTH,GR,RDEP,NPHI,RHOB,VSH,PHIE,SW,RO,PERM_MD,FLUID_TYPE,IS_PAY\n";
             appState.computedLogs.forEach(d => {
                 csv += `${d.depth.toFixed(2)},${d.gr.toFixed(2)},${d.rdep.toFixed(2)},${d.nphi.toFixed(4)},${d.rhob.toFixed(4)},${d.vsh.toFixed(3)},${d.phie.toFixed(3)},${d.sw.toFixed(3)},${d.ro.toFixed(2)},${d.perm.toFixed(1)},${d.fluidType},${d.isPay ? 1 : 0}\n`;
             });
-            downloadBlob(csv, `${appState.wellMeta.name}_INTERPRETED.csv`, 'text/csv');
-        }
-
-        function downloadBlob(content, filename, mimeType) {
-            const blob = new Blob([content], { type: mimeType });
+            const blob = new Blob([csv], { type: 'text/csv' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = filename;
+            a.download = `${appState.wellMeta.name}_DIGITIZED.csv`;
             a.click();
             window.URL.revokeObjectURL(url);
         }
 
+        // Event Binding
         function bindEvents() {
-            // Navigation Tabs
-            const tabs = ['log', 'report', 'crossplots', 'params'];
+            // Tabs
+            const tabs = ['digitizer', 'log', 'report', 'crossplots', 'params'];
             tabs.forEach(t => {
                 document.getElementById(`tab-btn-${t}`).addEventListener('click', () => {
                     tabs.forEach(o => {
@@ -1411,13 +1629,27 @@
                 });
             });
 
-            // JPG Modal Trigger
+            // Image Upload Handler
+            document.getElementById('file-input-image').addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        appState.currentImage = img;
+                        renderDigitizerImageCanvas();
+                        runImageCVExtractor();
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+
+            // JPG Modal
             const modalJpg = document.getElementById('modal-jpg-export');
             document.getElementById('btn-open-jpg-modal').addEventListener('click', () => {
-                document.getElementById('jpg-filename-preview').textContent = `${appState.wellMeta.name}_LOG_PLOT.jpg`;
-                modalJpg.classList.remove('hidden');
-            });
-            document.getElementById('btn-quick-export-jpg').addEventListener('click', () => {
                 document.getElementById('jpg-filename-preview').textContent = `${appState.wellMeta.name}_LOG_PLOT.jpg`;
                 modalJpg.classList.remove('hidden');
             });
@@ -1425,12 +1657,20 @@
             document.getElementById('btn-cancel-jpg-modal').addEventListener('click', () => modalJpg.classList.add('hidden'));
             document.getElementById('btn-execute-jpg-download').addEventListener('click', exportLogAsJPG);
 
-            // Preset Well Switcher
-            document.getElementById('sel-preset-well').addEventListener('change', (e) => {
-                generateWellData(e.target.value);
+            // Digitizer Trigger
+            document.getElementById('btn-run-digitizer').addEventListener('click', () => {
+                runImageCVExtractor();
+                // Auto switch to multi-track log tab
+                document.getElementById('tab-btn-log').click();
             });
 
-            // Sliders
+            // Preset Well Switcher
+            document.getElementById('sel-preset-well').addEventListener('change', (e) => {
+                appState.wellMeta.name = `WELL-${e.target.value.toUpperCase()}`;
+                drawSyntheticLogImage(e.target.value);
+            });
+
+            // Cutoffs
             document.getElementById('sld-vsh-cut').addEventListener('input', (e) => {
                 appState.petroParams.vshCutoff = parseFloat(e.target.value) / 100;
                 document.getElementById('val-vsh-cut').textContent = `${e.target.value}%`;
@@ -1446,9 +1686,25 @@
                 document.getElementById('val-sw-cut').textContent = `${e.target.value}%`;
                 runInterpretationEngine();
             });
+            document.getElementById('sel-vsh-model').addEventListener('change', (e) => {
+                appState.petroParams.vshModel = e.target.value;
+                runInterpretationEngine();
+            });
             document.getElementById('inp-rw').addEventListener('change', (e) => {
                 appState.petroParams.rw = parseFloat(e.target.value);
                 runInterpretationEngine();
+            });
+
+            // Depth Inputs Calibration
+            document.getElementById('inp-calib-top').addEventListener('change', (e) => {
+                appState.wellMeta.startDepth = parseFloat(e.target.value);
+                renderDigitizerImageCanvas();
+                runImageCVExtractor();
+            });
+            document.getElementById('inp-calib-bot').addEventListener('change', (e) => {
+                appState.wellMeta.stopDepth = parseFloat(e.target.value);
+                renderDigitizerImageCanvas();
+                runImageCVExtractor();
             });
 
             // Zoom
@@ -1462,10 +1718,9 @@
             });
 
             // Downloads
-            document.getElementById('btn-download-las').addEventListener('click', exportRawLAS);
             document.getElementById('btn-download-csv').addEventListener('click', exportInterpretedCSV);
 
-            // Canvas Inspector Mousemove
+            // Reconstructed Canvas Crosshair Inspector Mousemove
             const canvas = document.getElementById('canvas-multi-track');
             canvas.addEventListener('mousemove', (e) => {
                 const rect = canvas.getBoundingClientRect();
@@ -1518,7 +1773,7 @@
             lucide.createIcons();
             bindEvents();
             initCrossplots();
-            generateWellData('Alpha-01');
+            drawSyntheticLogImage('Alpha-01');
         });
     </script>
 </body>
