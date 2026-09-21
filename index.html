@@ -1,0 +1,1442 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GEO-LOG INTERPRET PRO - Sistem Interpretasi Otomatis Log Sumur Migas</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Chart.js for Crossplots -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        oil: {
+                            500: '#eab308',
+                            600: '#ca8a04',
+                        },
+                        geodark: {
+                            800: '#0f172a',
+                            850: '#0b1329',
+                            900: '#050a17',
+                            950: '#020610'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #020610;
+            color: #f1f5f9;
+        }
+
+        .font-mono {
+            font-family: 'JetBrains+Mono', monospace;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b1329;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #334155;
+        }
+
+        .tab-btn.active {
+            border-bottom-color: #38bdf8;
+            color: #38bdf8;
+            background-color: rgba(56, 189, 248, 0.08);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col overflow-x-hidden">
+
+    <!-- Top Header Bar -->
+    <header class="bg-geodark-850 border-b border-slate-800 px-4 py-3 flex flex-wrap items-center justify-between sticky top-0 z-50 shadow-2xl">
+        <div class="flex items-center space-x-3">
+            <div class="bg-gradient-to-br from-amber-500 via-amber-600 to-sky-600 p-2.5 rounded-xl shadow-lg shadow-amber-500/10 flex items-center justify-center">
+                <i data-lucide="cpu" class="w-6 h-6 text-white"></i>
+            </div>
+            <div>
+                <div class="flex items-center space-x-2">
+                    <h1 class="font-extrabold text-xl tracking-tight text-white flex items-center gap-1.5">
+                        GEO-LOG <span class="text-amber-400">INTERPRET</span> <span class="text-sky-400 font-mono text-xs px-2 py-0.5 rounded bg-sky-950 border border-sky-800">PRO v4.0</span>
+                    </h1>
+                </div>
+                <p class="text-[11px] text-slate-400">Platform Pembacaan, Interpretasi Otomatis & Visualisasi Log Sumur Migas</p>
+            </div>
+        </div>
+
+        <!-- Well Preset Selector & File Actions -->
+        <div class="flex flex-wrap items-center gap-2 my-2 sm:my-0">
+            <!-- Preset Well Dropdown -->
+            <div class="flex items-center bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs">
+                <i data-lucide="map-pin" class="w-3.5 h-3.5 text-amber-400 mr-1.5"></i>
+                <span class="text-slate-400 mr-2 font-mono">Preset:</span>
+                <select id="sel-preset-well" class="bg-transparent text-amber-300 font-semibold font-mono focus:outline-none cursor-pointer">
+                    <option value="Alpha-01" class="bg-slate-900 text-amber-300">Sumur Alpha-01 (Prospek Gas & Minyak)</option>
+                    <option value="Beta-02" class="bg-slate-900 text-sky-300">Sumur Beta-02 (Reservoar Air / Wet Sand)</option>
+                    <option value="Gamma-03" class="bg-slate-900 text-slate-300">Sumur Gamma-03 (Tight Shaly Sand)</option>
+                </select>
+            </div>
+
+            <!-- Download Raw LAS Button -->
+            <button id="btn-download-las" class="flex items-center space-x-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-medium rounded-lg transition border border-slate-700 text-slate-200">
+                <i data-lucide="file-code" class="w-4 h-4 text-sky-400"></i>
+                <span class="hidden sm:inline">Unduh LAS Mentah</span>
+            </button>
+
+            <!-- Download Interpreted CSV Button -->
+            <button id="btn-download-csv" class="flex items-center space-x-1.5 px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-xs font-medium text-white rounded-lg transition shadow-md shadow-emerald-700/20">
+                <i data-lucide="download" class="w-4 h-4"></i>
+                <span>Unduh Hasil (CSV)</span>
+            </button>
+
+            <!-- Upload Custom File -->
+            <label class="flex items-center space-x-1.5 px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-xs font-medium text-white rounded-lg cursor-pointer transition shadow-md shadow-sky-600/20">
+                <i data-lucide="upload-cloud" class="w-4 h-4"></i>
+                <span>Unggah LAS / CSV</span>
+                <input type="file" id="file-input-log" accept=".las,.txt,.csv" class="hidden">
+            </label>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs Bar -->
+    <nav class="bg-geodark-850/90 backdrop-blur border-b border-slate-800 px-4 flex space-x-1 overflow-x-auto text-xs font-medium z-30">
+        <button id="tab-btn-log" class="tab-btn active py-3 px-4 border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition flex items-center space-x-2 whitespace-nowrap">
+            <i data-lucide="layers" class="w-4 h-4"></i>
+            <span>Log Multi-Track Interpretasi</span>
+        </button>
+        <button id="tab-btn-report" class="tab-btn py-3 px-4 border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition flex items-center space-x-2 whitespace-nowrap">
+            <i data-lucide="file-text" class="w-4 h-4"></i>
+            <span>Laporan Executive & Perforasi</span>
+        </button>
+        <button id="tab-btn-crossplots" class="tab-btn py-3 px-4 border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition flex items-center space-x-2 whitespace-nowrap">
+            <i data-lucide="scatter-chart" class="w-4 h-4"></i>
+            <span>Crossplots & Pickett Plot</span>
+        </button>
+        <button id="tab-btn-params" class="tab-btn py-3 px-4 border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition flex items-center space-x-2 whitespace-nowrap">
+            <i data-lucide="sliders" class="w-4 h-4"></i>
+            <span>Kalibrasi Parameter Petrofisika</span>
+        </button>
+    </nav>
+
+    <!-- Main Content Workspace -->
+    <div class="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
+
+        <!-- Control Sidebar Panel -->
+        <aside class="w-full lg:w-80 bg-geodark-850 border-r border-slate-800 flex flex-col h-auto lg:h-[calc(100vh-110px)] overflow-y-auto shrink-0">
+            <div class="p-3.5 border-b border-slate-800 bg-slate-900/60 flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <i data-lucide="sliders-horizontal" class="w-4 h-4 text-amber-400"></i>
+                    <span>Quick-Look Cutoffs</span>
+                </span>
+                <span class="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded font-mono border border-amber-500/30">Auto Calc</span>
+            </div>
+
+            <div class="p-4 space-y-4 text-xs">
+                <!-- Vshale Cutoff Slider -->
+                <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800 space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-300 font-semibold">Max Vshale Cutoff</span>
+                        <span id="val-vsh-cut" class="font-mono text-amber-400 font-bold">40%</span>
+                    </div>
+                    <input type="range" id="sld-vsh-cut" min="10" max="60" value="40" class="w-full accent-amber-500 cursor-pointer">
+                    <p class="text-[10px] text-slate-500">Batas maksimum lempung untuk mengklasifikasikan batupasir (Sand).</p>
+                </div>
+
+                <!-- Porosity Cutoff Slider -->
+                <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800 space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-300 font-semibold">Min Porositas Cutoff</span>
+                        <span id="val-phi-cut" class="font-mono text-sky-400 font-bold">10%</span>
+                    </div>
+                    <input type="range" id="sld-phi-cut" min="5" max="25" value="10" class="w-full accent-sky-500 cursor-pointer">
+                    <p class="text-[10px] text-slate-500">Porositas efektif minimum untuk memenuhi syarat reservoar.</p>
+                </div>
+
+                <!-- Sw Cutoff Slider -->
+                <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800 space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-300 font-semibold">Max Sw Cutoff</span>
+                        <span id="val-sw-cut" class="font-mono text-emerald-400 font-bold">60%</span>
+                    </div>
+                    <input type="range" id="sld-sw-cut" min="20" max="80" value="60" class="w-full accent-emerald-500 cursor-pointer">
+                    <p class="text-[10px] text-slate-500">Saturasi air maksimum untuk dikategorikan sebagai Net Pay.</p>
+                </div>
+
+                <!-- Water Resistivity Rw -->
+                <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800 space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-300 font-semibold">Resistivitas Air (Rw)</span>
+                        <span class="text-[10px] text-slate-400 font-mono">Formation Water</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <input type="number" step="0.01" id="inp-rw" value="0.05" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-amber-300 font-mono font-bold text-xs focus:outline-none focus:border-sky-500">
+                        <span class="text-slate-400 font-mono">Ω.m</span>
+                    </div>
+                </div>
+
+                <!-- Quick Summary Stats Panel -->
+                <div class="bg-gradient-to-br from-slate-900 to-geodark-900 p-4 rounded-xl border border-slate-800 space-y-2.5 font-mono">
+                    <span class="text-[11px] text-amber-400 font-sans font-bold uppercase tracking-wider block">Ringkasan Interpretasi</span>
+                    <div class="flex justify-between text-xs">
+                        <span class="text-slate-400">Total Net Pay:</span>
+                        <span id="sb-netpay" class="text-amber-400 font-bold">59.8 m</span>
+                    </div>
+                    <div class="flex justify-between text-xs">
+                        <span class="text-slate-400">Pay Gas:</span>
+                        <span id="sb-paygas" class="text-red-400 font-bold">35.0 m</span>
+                    </div>
+                    <div class="flex justify-between text-xs">
+                        <span class="text-slate-400">Pay Minyak:</span>
+                        <span id="sb-payoil" class="text-emerald-400 font-bold">24.8 m</span>
+                    </div>
+                    <div class="flex justify-between text-xs border-t border-slate-800 pt-1.5">
+                        <span class="text-slate-400">Kontak GOC:</span>
+                        <span id="sb-goc" class="text-amber-300">2070.0 m</span>
+                    </div>
+                    <div class="flex justify-between text-xs">
+                        <span class="text-slate-400">Kontak OWC:</span>
+                        <span id="sb-owc" class="text-sky-300">2095.0 m</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Center Workspace -->
+        <main class="flex-1 flex flex-col bg-geodark-900 overflow-hidden relative">
+
+            <!-- TAB 1: MULTI-TRACK LOG VIEWER CANVAS -->
+            <div id="container-tab-log" class="flex-1 flex flex-col h-full overflow-hidden">
+                
+                <!-- Crosshair & Hover Live Reading Header -->
+                <div class="bg-slate-900 border-b border-slate-800 px-4 py-2 flex flex-wrap items-center justify-between text-xs font-mono z-10 shadow-lg gap-2">
+                    <div class="flex items-center space-x-2 bg-geodark-950 px-3 py-1 rounded-lg border border-slate-800">
+                        <span class="text-slate-500">DEPTH:</span>
+                        <span id="insp-depth" class="text-amber-400 font-bold text-sm">2050.00 m</span>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-3 text-[11px]">
+                        <div><span class="text-slate-400">GR:</span> <span id="insp-gr" class="text-emerald-400 font-bold">22.5</span></div>
+                        <div><span class="text-slate-400">RDEP:</span> <span id="insp-rdep" class="text-red-400 font-bold">145.0</span></div>
+                        <div><span class="text-slate-400">Ro:</span> <span id="insp-ro" class="text-sky-400 font-bold">2.1</span></div>
+                        <div><span class="text-slate-400">NPHI:</span> <span id="insp-nphi" class="text-cyan-300 font-bold">0.10</span></div>
+                        <div><span class="text-slate-400">RHOB:</span> <span id="insp-rhob" class="text-rose-400 font-bold">2.12</span></div>
+                        <div><span class="text-slate-400">Φe:</span> <span id="insp-phie" class="text-sky-300 font-bold">22.8%</span></div>
+                        <div><span class="text-slate-400">Sw:</span> <span id="insp-sw" class="text-amber-300 font-bold">18.5%</span></div>
+                        <div><span class="text-slate-400">Perm:</span> <span id="insp-perm" class="text-emerald-300 font-bold">340 mD</span></div>
+                        <div><span class="text-slate-400">Fluida:</span> <span id="insp-fluid" class="px-1.5 py-0.5 rounded text-[10px] font-sans font-bold bg-red-500/20 text-red-400 border border-red-500/30">GAS</span></div>
+                    </div>
+
+                    <!-- Zoom Scale Buttons -->
+                    <div class="flex items-center space-x-1">
+                        <button id="btn-zoom-in" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700" title="Zoom In Vertical">
+                            <i data-lucide="zoom-in" class="w-3.5 h-3.5"></i>
+                        </button>
+                        <button id="btn-zoom-out" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700" title="Zoom Out Vertical">
+                            <i data-lucide="zoom-out" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Canvas Viewport Scroll Container -->
+                <div id="log-viewport" class="flex-1 relative overflow-y-auto overflow-x-auto flex justify-center bg-geodark-950 p-4">
+                    <canvas id="canvas-multi-track" class="block cursor-crosshair rounded-xl border border-slate-800 shadow-2xl"></canvas>
+                </div>
+            </div>
+
+            <!-- TAB 2: EXECUTIVE REPORT & PERFORATION RECOMMENDATION -->
+            <div id="container-tab-report" class="flex-1 p-6 overflow-y-auto hidden space-y-6">
+                
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                            <i data-lucide="file-check-2" class="w-5 h-5 text-amber-400"></i>
+                            <span>Laporan Interpretasi Otomatis Petrofisika & Geologi Sumur</span>
+                        </h2>
+                        <p class="text-xs text-slate-400 mt-1">Kesimpulan evaluasi otomatis berbasis gabungan aturan petrofisika & algoritma deterministik.</p>
+                    </div>
+                    <button onclick="window.print()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-lg border border-slate-700 flex items-center space-x-1.5">
+                        <i data-lucide="printer" class="w-4 h-4"></i>
+                        <span>Cetak Laporan PDF</span>
+                    </button>
+                </div>
+
+                <!-- AI / Automated Geological Narrative Summary Card -->
+                <div class="bg-gradient-to-r from-slate-900 via-geodark-850 to-slate-900 p-5 rounded-2xl border border-slate-800 shadow-xl space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
+                            <i data-lucide="sparkles" class="w-4 h-4"></i>
+                            <span>Executive Narrative Summary (AI Geological Engine)</span>
+                        </span>
+                        <span id="badge-well-status" class="px-3 py-1 rounded-full text-xs font-bold font-mono bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">COMMERCIAL PAY WELL</span>
+                    </div>
+                    <p id="narrative-text" class="text-sm text-slate-200 leading-relaxed font-sans">
+                        <!-- Populated dynamically -->
+                    </p>
+                </div>
+
+                <!-- Targeted Perforation Recommendations -->
+                <div class="bg-slate-900/80 rounded-2xl border border-slate-800 overflow-hidden">
+                    <div class="p-4 border-b border-slate-800 bg-slate-950 flex items-center justify-between">
+                        <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
+                            <i data-lucide="target" class="w-4 h-4 text-red-500"></i>
+                            <span>Rekomendasi Interval Perforasi & Uji Produksi (DST Target)</span>
+                        </h3>
+                        <span class="text-[10px] bg-red-500/20 text-red-400 px-2.5 py-0.5 rounded-full font-mono border border-red-500/30">Target Prioritas Utama</span>
+                    </div>
+                    <div class="p-4">
+                        <div id="perf-targets-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Zone Breakdown Evaluation Table -->
+                <div class="bg-slate-900/80 rounded-2xl border border-slate-800 overflow-hidden">
+                    <div class="p-4 border-b border-slate-800 bg-slate-950 flex justify-between items-center">
+                        <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider">Rincian Evaluasi Petrofisika Per Zona Formasi</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs font-mono">
+                            <thead class="bg-slate-950 text-slate-400 border-b border-slate-800">
+                                <tr>
+                                    <th class="p-3">Nama Zona</th>
+                                    <th class="p-3">Interval (m)</th>
+                                    <th class="p-3">Gross (m)</th>
+                                    <th class="p-3">Net Pay (m)</th>
+                                    <th class="p-3">NTG</th>
+                                    <th class="p-3">Avg Vsh</th>
+                                    <th class="p-3">Avg Φe</th>
+                                    <th class="p-3">Avg Perm</th>
+                                    <th class="p-3">Avg Sw</th>
+                                    <th class="p-3">Fluida Dominan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-zones" class="divide-y divide-slate-800 text-slate-200">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- TAB 3: CROSSPLOTS & PICKETT PLOT -->
+            <div id="container-tab-crossplots" class="flex-1 p-6 overflow-y-auto hidden space-y-6">
+                <div>
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i data-lucide="scatter-chart" class="w-5 h-5 text-sky-400"></i>
+                        <span>Crossplots Petrofisika & Pickett Plot Verifikasi</span>
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-1">Gunakan plot ini untuk memverifikasi litologi matriks, efek gas crossover, dan estimasi $R_w$.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Plot 1: NPHI vs RHOB -->
+                    <div class="bg-slate-900/80 p-4 rounded-2xl border border-slate-800 flex flex-col h-96">
+                        <h3 class="text-xs font-bold text-slate-200 uppercase mb-2 flex items-center justify-between">
+                            <span>NPHI vs RHOB Lithology & Gas Plot</span>
+                            <span class="text-[10px] text-amber-400 font-mono">Gas Crossover Highlighted</span>
+                        </h3>
+                        <div class="flex-1 relative">
+                            <canvas id="chart-nphi-rhob"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Plot 2: Pickett Plot -->
+                    <div class="bg-slate-900/80 p-4 rounded-2xl border border-slate-800 flex flex-col h-96">
+                        <h3 class="text-xs font-bold text-slate-200 uppercase mb-2 flex items-center justify-between">
+                            <span>Pickett Plot (Log Rt vs Log Φe)</span>
+                            <span class="text-[10px] text-sky-400 font-mono">Archie Sw Line Verification</span>
+                        </h3>
+                        <div class="flex-1 relative">
+                            <canvas id="chart-pickett"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: PETROPHYSICAL PARAMETERS CALIBRATION -->
+            <div id="container-tab-params" class="flex-1 p-6 overflow-y-auto hidden max-w-4xl">
+                <div class="border-b border-slate-800 pb-4 mb-6">
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i data-lucide="settings" class="w-5 h-5 text-amber-400"></i>
+                        <span>Pengaturan Parameter & Konstanta Persamaan Petrofisika</span>
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-1">Sesuaikan nilai konstanta Archie, matriks litologi, dan model permeabilitas Timur.</p>
+                </div>
+
+                <div class="space-y-6 text-xs">
+                    
+                    <!-- Archie Parameters -->
+                    <div class="bg-slate-900/80 p-5 rounded-2xl border border-slate-800 space-y-4">
+                        <h3 class="text-sm font-bold text-amber-400 uppercase">1. Parameter Archie (Saturasi Air Sw)</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="text-slate-300 block mb-1">Faktor Tortuositas (a)</label>
+                                <input type="number" step="0.01" id="p-arch-a" value="1.00" class="w-full bg-geodark-950 border border-slate-700 rounded-lg p-2 text-slate-100 font-mono">
+                            </div>
+                            <div>
+                                <label class="text-slate-300 block mb-1">Eksponen Semen (m)</label>
+                                <input type="number" step="0.1" id="p-arch-m" value="2.00" class="w-full bg-geodark-950 border border-slate-700 rounded-lg p-2 text-slate-100 font-mono">
+                            </div>
+                            <div>
+                                <label class="text-slate-300 block mb-1">Eksponen Saturasi (n)</label>
+                                <input type="number" step="0.1" id="p-arch-n" value="2.00" class="w-full bg-geodark-950 border border-slate-700 rounded-lg p-2 text-slate-100 font-mono">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Matrix Densities -->
+                    <div class="bg-slate-900/80 p-5 rounded-2xl border border-slate-800 space-y-4">
+                        <h3 class="text-sm font-bold text-sky-400 uppercase">2. Densitas Matriks Batuan & Fluida</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-slate-300 block mb-1">Densitas Matriks Sandstone (ρ_ma)</label>
+                                <input type="number" step="0.01" id="p-rhoma" value="2.65" class="w-full bg-geodark-950 border border-slate-700 rounded-lg p-2 text-slate-100 font-mono">
+                            </div>
+                            <div>
+                                <label class="text-slate-300 block mb-1">Densitas Fluida Lumpur (ρ_fl)</label>
+                                <input type="number" step="0.01" id="p-rhof" value="1.00" class="w-full bg-geodark-950 border border-slate-700 rounded-lg p-2 text-slate-100 font-mono">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end">
+                        <button id="btn-apply-params" class="px-5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white font-medium rounded-xl shadow-lg transition flex items-center space-x-2">
+                            <i data-lucide="check-circle" class="w-4 h-4"></i>
+                            <span>Terapkan Parameter & Kalkulasi Ulang</span>
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        // Central Application State
+        const appState = {
+            wellMeta: {
+                name: 'WELL-ALPHA-01',
+                field: 'Mahakam Delta',
+                company: 'PT PETRO GEOSCIENCE INDONESIA',
+                startDepth: 2000.0,
+                stopDepth: 2200.0,
+                step: 0.2
+            },
+            rawLogs: [],         // Raw curve input
+            computedLogs: [],    // Processed petrophysical curves
+            zones: [],           // Evaluated geological zones
+            perfTargets: [],     // Recommended perforation targets
+            contacts: { goc: null, owc: null },
+            petroParams: {
+                grClean: 25,
+                grShale: 120,
+                rhoMa: 2.65,
+                rhoFluid: 1.00,
+                rw: 0.05,
+                a: 1.0,
+                m: 2.0,
+                n: 2.0,
+                permA: 0.136,
+                permB: 4.4,
+                permC: 2.0,
+                vshCutoff: 0.40,
+                phiCutoff: 0.10,
+                swCutoff: 0.60
+            },
+            scaleY: 6.0,
+            hoverIdx: -1,
+            charts: {}
+        };
+
+        // Synthetic Well Presets Generator
+        function generateWellData(presetKey = 'Alpha-01') {
+            const startD = 2000.0;
+            const stopD = 2200.0;
+            const step = 0.2;
+            const points = Math.floor((stopD - startD) / step) + 1;
+            const logs = [];
+
+            for (let i = 0; i < points; i++) {
+                const depth = startD + i * step;
+                let gr, cali, sp, rdep, rmed, rsha, nphi, rhob, dt;
+
+                if (presetKey === 'Alpha-01') {
+                    // WELL ALPHA-01: Dual Gas & Oil Prospect
+                    if (depth >= 2000 && depth < 2035) {
+                        // Cap Shale
+                        gr = 110 + Math.sin(depth * 0.4) * 10 + Math.random() * 5;
+                        cali = 9.5; rdep = 1.8; rmed = 1.6; rsha = 1.4;
+                        nphi = 0.38; rhob = 2.48; dt = 115;
+                    } else if (depth >= 2035 && depth < 2070) {
+                        // GAS SAND RESERVOIR (NPHI < RHOB Crossover)
+                        gr = 22 + Math.random() * 6;
+                        cali = 8.5; 
+                        rdep = 145 + Math.sin(depth * 0.2) * 40 + Math.random() * 20;
+                        rmed = 95; rsha = 45;
+                        nphi = 0.09 + Math.random() * 0.02; // Very Low NPHI
+                        rhob = 2.12 + Math.random() * 0.02; // Low RHOB
+                        dt = 85;
+                    } else if (depth >= 2070 && depth < 2095) {
+                        // OIL SAND RESERVOIR
+                        gr = 26 + Math.random() * 6;
+                        cali = 8.5;
+                        rdep = 38 + Math.random() * 10;
+                        rmed = 26; rsha = 14;
+                        nphi = 0.22 + Math.random() * 0.02;
+                        rhob = 2.26 + Math.random() * 0.03;
+                        dt = 92;
+                    } else if (depth >= 2095 && depth < 2130) {
+                        // WATER SAND (AQUIFER)
+                        gr = 30 + Math.random() * 8;
+                        cali = 8.6;
+                        rdep = 2.1 + Math.random() * 0.5; // Low Rt ~ Ro
+                        rmed = 1.9; rsha = 1.6;
+                        nphi = 0.28 + Math.random() * 0.02;
+                        rhob = 2.36 + Math.random() * 0.03;
+                        dt = 98;
+                    } else {
+                        // Basal Shale
+                        gr = 115 + Math.random() * 10;
+                        cali = 9.6; rdep = 1.9; rmed = 1.7; rsha = 1.5;
+                        nphi = 0.40; rhob = 2.50; dt = 118;
+                    }
+                } else if (presetKey === 'Beta-02') {
+                    // WELL BETA-02: Water Sand / Wet Reservoir
+                    if (depth >= 2040 && depth < 2120) {
+                        gr = 25 + Math.random() * 6;
+                        cali = 8.5; rdep = 1.8 + Math.random() * 0.4;
+                        rmed = 1.6; rsha = 1.4;
+                        nphi = 0.29 + Math.random() * 0.02;
+                        rhob = 2.35 + Math.random() * 0.02;
+                        dt = 100;
+                    } else {
+                        gr = 115 + Math.random() * 10;
+                        cali = 9.5; rdep = 1.7; rmed = 1.5; rsha = 1.3;
+                        nphi = 0.39; rhob = 2.49; dt = 116;
+                    }
+                } else {
+                    // WELL GAMMA-03: Tight Shaly Sand
+                    if (depth >= 2030 && depth < 2140) {
+                        gr = 68 + Math.random() * 12; // High Vsh
+                        cali = 8.8; rdep = 12 + Math.random() * 5;
+                        rmed = 9; rsha = 6;
+                        nphi = 0.18 + Math.random() * 0.03;
+                        rhob = 2.52 + Math.random() * 0.04; // Tight / Low Porosity
+                        dt = 75;
+                    } else {
+                        gr = 120 + Math.random() * 10;
+                        cali = 9.8; rdep = 2.0; rmed = 1.8; rsha = 1.5;
+                        nphi = 0.42; rhob = 2.55; dt = 120;
+                    }
+                }
+
+                logs.push({ depth, gr, cali, sp: -20, rdep, rmed, rsha, nphi, rhob, dt });
+            }
+
+            appState.wellMeta.name = `WELL-${presetKey.toUpperCase()}`;
+            appState.rawLogs = logs;
+            runInterpretationEngine();
+        }
+
+        // Automated Petrophysical Interpretation Engine
+        function runInterpretationEngine() {
+            const p = appState.petroParams;
+            const computed = [];
+
+            let gocDepth = null;
+            let owcDepth = null;
+
+            appState.rawLogs.forEach((d, idx) => {
+                // 1. Vshale Linear
+                let vsh = (d.gr - p.grClean) / (p.grShale - p.grClean);
+                vsh = Math.max(0, Math.min(1.0, vsh));
+
+                // 2. Density Porosity
+                let phid = (p.rhoMa - d.rhob) / (p.rhoMa - p.rhoFluid);
+                phid = Math.max(0, Math.min(0.5, phid));
+
+                // 3. Effective Porosity
+                let phiND = Math.sqrt((Math.pow(d.nphi, 2) + Math.pow(phid, 2)) / 2);
+                let phie = phiND * (1 - vsh);
+                phie = Math.max(0.001, Math.min(0.45, phie));
+
+                // 4. Ro (100% Water Saturated Resistivity)
+                // Ro = a * Rw / (PhiE ^ m)
+                let ro = (p.a * p.rw) / Math.pow(phie, p.m);
+
+                // 5. Archie Sw
+                let rt = Math.max(0.1, d.rdep);
+                let swNom = ro / rt;
+                let sw = Math.pow(Math.max(0.0001, swNom), 1 / p.n);
+                sw = Math.max(0.05, Math.min(1.0, sw));
+
+                // 6. Timur Permeability Model
+                let swi = Math.max(0.05, sw * 0.7);
+                let perm = (p.permA * Math.pow(phie * 100, p.permB)) / Math.pow(swi, p.permC);
+                perm = Math.max(0.001, Math.min(10000.0, perm));
+
+                // 7. Reservoir & Pay Cutoffs
+                const isSand = (vsh <= p.vshCutoff);
+                const isReservoir = isSand && (phie >= p.phiCutoff);
+                const isPay = isReservoir && (sw <= p.swCutoff);
+
+                // 8. Automated Fluid Typing Logic
+                let fluidType = 'Shale';
+                if (isReservoir) {
+                    // Check Gas Crossover (NPHI < RHOB Crossover or strong separation with low Sw)
+                    const nphiRhobCross = (d.nphi < 0.15 && d.rhob < 2.22) || (d.nphi - phid < -0.04 && sw < 0.35);
+                    if (nphiRhobCross && isPay) {
+                        fluidType = 'Gas';
+                    } else if (isPay) {
+                        fluidType = 'Oil';
+                    } else {
+                        fluidType = 'Water';
+                    }
+                }
+
+                computed.push({
+                    ...d,
+                    vsh, phid, phie, ro, sw, perm,
+                    isSand, isReservoir, isPay,
+                    fluidType
+                });
+            });
+
+            // 9. Contact Detection Algorithm (GOC & OWC)
+            for (let i = 0; i < computed.length - 1; i++) {
+                if (computed[i].fluidType === 'Gas' && computed[i+1].fluidType === 'Oil' && !gocDepth) {
+                    gocDepth = computed[i].depth;
+                }
+                if ((computed[i].fluidType === 'Oil' || computed[i].fluidType === 'Gas') && computed[i+1].fluidType === 'Water' && !owcDepth) {
+                    owcDepth = computed[i].depth;
+                }
+            }
+
+            appState.computedLogs = computed;
+            appState.contacts = { goc: gocDepth, owc: owcDepth };
+
+            // 10. Generate Perforation Targets & Reports
+            evaluatePerforationTargets();
+            generateNarrativeReport();
+            renderMultiTrackCanvas();
+            updateCrossplots();
+        }
+
+        // Evaluate Targeted Perforation Intervals
+        function evaluatePerforationTargets() {
+            const data = appState.computedLogs;
+            const step = appState.wellMeta.step;
+            const targets = [];
+
+            let inPay = false;
+            let currentTarget = null;
+
+            data.forEach((d, i) => {
+                if (d.isPay && !inPay) {
+                    inPay = true;
+                    currentTarget = {
+                        start: d.depth,
+                        stop: d.depth,
+                        fluid: d.fluidType,
+                        phieSum: d.phie,
+                        permSum: d.perm,
+                        swSum: d.sw,
+                        count: 1
+                    };
+                } else if (d.isPay && inPay) {
+                    // If fluid type shifts drastically or gap occurs
+                    if (d.fluidType !== currentTarget.fluid) {
+                        currentTarget.stop = data[i-1].depth;
+                        targets.push(currentTarget);
+                        currentTarget = {
+                            start: d.depth,
+                            stop: d.depth,
+                            fluid: d.fluidType,
+                            phieSum: d.phie,
+                            permSum: d.perm,
+                            swSum: d.sw,
+                            count: 1
+                        };
+                    } else {
+                        currentTarget.stop = d.depth;
+                        currentTarget.phieSum += d.phie;
+                        currentTarget.permSum += d.perm;
+                        currentTarget.swSum += d.sw;
+                        currentTarget.count++;
+                    }
+                } else if (!d.isPay && inPay) {
+                    inPay = false;
+                    currentTarget.stop = data[i-1].depth;
+                    targets.push(currentTarget);
+                    currentTarget = null;
+                }
+            });
+
+            if (inPay && currentTarget) {
+                targets.push(currentTarget);
+            }
+
+            // Filter targets thickness >= 2m
+            appState.perfTargets = targets.map(t => {
+                const thick = t.stop - t.start;
+                return {
+                    top: t.start,
+                    bottom: t.stop,
+                    thickness: thick,
+                    fluid: t.fluid,
+                    avgPhie: (t.phieSum / t.count) * 100,
+                    avgPerm: t.permSum / t.count,
+                    avgSw: (t.swSum / t.count) * 100
+                };
+            }).filter(t => t.thickness >= 1.5);
+        }
+
+        // Generate Dynamic Executive Narrative Report
+        function generateNarrativeReport() {
+            const data = appState.computedLogs;
+            const step = appState.wellMeta.step;
+            const name = appState.wellMeta.name;
+
+            let totalNetPay = data.filter(d => d.isPay).length * step;
+            let gasPay = data.filter(d => d.fluidType === 'Gas').length * step;
+            let oilPay = data.filter(d => d.fluidType === 'Oil').length * step;
+            let totalSand = data.filter(d => d.isSand).length * step;
+
+            const goc = appState.contacts.goc;
+            const owc = appState.contacts.owc;
+
+            // Sidebar stats
+            document.getElementById('sb-netpay').textContent = `${totalNetPay.toFixed(1)} m`;
+            document.getElementById('sb-paygas').textContent = `${gasPay.toFixed(1)} m`;
+            document.getElementById('sb-payoil').textContent = `${oilPay.toFixed(1)} m`;
+            document.getElementById('sb-goc').textContent = goc ? `${goc.toFixed(1)} m` : 'Tidak Terdeteksi';
+            document.getElementById('sb-owc').textContent = owc ? `${owc.toFixed(1)} m` : 'Tidak Terdeteksi';
+
+            // Narrative Paragraph Construction
+            let statusBadge = document.getElementById('badge-well-status');
+            let narrativeText = '';
+
+            if (totalNetPay > 15) {
+                statusBadge.className = "px-3 py-1 rounded-full text-xs font-bold font-mono bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+                statusBadge.textContent = "PROSPEK SANGAT KOMERSIAL (PAY)";
+
+                narrativeText = `Hasil interpretasi otomatis pada sumur <strong>${name}</strong> (Interval ${appState.wellMeta.startDepth.toFixed(0)}m - ${appState.wellMeta.stopDepth.toFixed(0)}m) mengonfirmasi keberadaan reservoar hidrokarbon prospektif dengan total <strong>Net Pay sebesar ${totalNetPay.toFixed(1)} m</strong>. `;
+                
+                if (gasPay > 0 && oilPay > 0) {
+                    narrativeText += `Sistem mengidentifikasi zona dual-fluid yang terdiri dari <strong>${gasPay.toFixed(1)} m Zona Gas Prospektif</strong> dan <strong>${oilPay.toFixed(1)} m Zona Minyak</strong>. `;
+                } else if (gasPay > 0) {
+                    narrativeText += `Zona hidrokarbon didominasi oleh <strong>Pay Gas sebesar ${gasPay.toFixed(1)} m</strong> dengan karakteristik NPHI-RHOB Crossover yang kuat. `;
+                } else {
+                    narrativeText += `Zona hidrokarbon didominasi oleh <strong>Pay Minyak sebesar ${oilPay.toFixed(1)} m</strong>. `;
+                }
+
+                if (goc) narrativeText += `Kontak Gas-Minyak (GOC) teridentifikasi secara presisi pada kedalaman <strong>${goc.toFixed(1)} m</strong>. `;
+                if (owc) narrativeText += `Kontak Minyak-Air (OWC) berada pada kedalaman <strong>${owc.toFixed(1)} m</strong>. `;
+
+                narrativeText += `Reservoar batupasir memiliki kualitas sangat baik dengan porositas efektif rata-rata tinggi dan permeabilitas hingga orde ratusan mD. Direkomendasikan segera untuk uji DST / penembakan perforasi pada target terpilih.`;
+
+            } else if (totalNetPay > 0) {
+                statusBadge.className = "px-3 py-1 rounded-full text-xs font-bold font-mono bg-amber-500/20 text-amber-300 border border-amber-500/30";
+                statusBadge.textContent = "PROSPEK MARGINAL / TIGHT";
+                narrativeText = `Sumur <strong>${name}</strong> menunjukkan potensi hidrokarbon marginal dengan total Net Pay <strong>${totalNetPay.toFixed(1)} m</strong>. Disarankan evaluasi stimulus fracturing sebelum pengujian lebih lanjut.`;
+            } else {
+                statusBadge.className = "px-3 py-1 rounded-full text-xs font-bold font-mono bg-red-500/20 text-red-400 border border-red-500/30";
+                statusBadge.textContent = "SUMUR BASAH / DRY HOLE";
+                narrativeText = `Sumur <strong>${name}</strong> didominasi oleh akumulasi air (aquifer wet sand) atau formasi lempung ketat. Tidak ditemukan akumulasi hidrokarbon komersial pada interval ini.`;
+            }
+
+            document.getElementById('narrative-text').innerHTML = narrativeText;
+
+            // Render Perforation Target Cards
+            const perfContainer = document.getElementById('perf-targets-container');
+            perfContainer.innerHTML = '';
+
+            if (appState.perfTargets.length === 0) {
+                perfContainer.innerHTML = `<p class="text-slate-500 text-xs italic col-span-2">Tidak ada interval Net Pay yang memenuhi syarat perforasi minimum.</p>`;
+            } else {
+                appState.perfTargets.forEach((t, idx) => {
+                    let fluidColor = t.fluid === 'Gas' ? 'border-red-500/40 bg-red-950/20' : 'border-emerald-500/40 bg-emerald-950/20';
+                    let badgeColor = t.fluid === 'Gas' ? 'bg-red-500/20 text-red-400' : 'bg-emerald-500/20 text-emerald-400';
+
+                    const card = document.createElement('div');
+                    card.className = `p-4 rounded-xl border ${fluidColor} flex flex-col justify-between space-y-2`;
+                    card.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-white text-xs">Target #${idx+1}: Interval ${t.top.toFixed(1)}m - ${t.bottom.toFixed(1)}m</span>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${badgeColor}">${t.fluid.toUpperCase()} PAY</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2 text-[11px] font-mono text-slate-300 pt-1 border-t border-slate-800">
+                            <div><span class="text-slate-500 block text-[9px]">TEBAL</span>${t.thickness.toFixed(1)} m</div>
+                            <div><span class="text-slate-500 block text-[9px]">AVG Φe</span>${t.avgPhie.toFixed(1)}%</div>
+                            <div><span class="text-slate-500 block text-[9px]">AVG PERM</span>${t.avgPerm.toFixed(0)} mD</div>
+                        </div>
+                    `;
+                    perfContainer.appendChild(card);
+                });
+            }
+
+            // Populate Zone Breakdown Table
+            const tbody = document.getElementById('tbody-zones');
+            tbody.innerHTML = '';
+            
+            const dummyZones = [
+                { name: 'Shale Atas', top: 2000, bot: 2035 },
+                { name: 'Zona Utama (Sand Alpha)', top: 2035, bot: 2095 },
+                { name: 'Aquifer Bawah', top: 2095, bot: 2130 },
+                { name: 'Basal Shale', top: 2130, bot: 2200 }
+            ];
+
+            dummyZones.forEach(z => {
+                const zData = data.filter(d => d.depth >= z.top && d.depth < z.bot);
+                if (zData.length === 0) return;
+
+                let gross = z.bot - z.top;
+                let payCount = zData.filter(d => d.isPay).length;
+                let netPay = payCount * step;
+                let ntg = (netPay / gross) * 100;
+
+                let avgVsh = (zData.reduce((s, c) => s + c.vsh, 0) / zData.length) * 100;
+                let avgPhie = (zData.reduce((s, c) => s + c.phie, 0) / zData.length) * 100;
+                let avgPerm = zData.reduce((s, c) => s + c.perm, 0) / zData.length;
+                let avgSw = (zData.reduce((s, c) => s + c.sw, 0) / zData.length) * 100;
+
+                // Dominant fluid
+                let gC = zData.filter(d => d.fluidType === 'Gas').length;
+                let oC = zData.filter(d => d.fluidType === 'Oil').length;
+                let wC = zData.filter(d => d.fluidType === 'Water').length;
+                let domFluid = 'Shale';
+                if (gC > oC && gC > wC) domFluid = 'Gas Pay';
+                else if (oC > gC && oC > wC) domFluid = 'Oil Pay';
+                else if (wC > 0) domFluid = 'Water';
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-800/50 transition";
+                tr.innerHTML = `
+                    <td class="p-3 font-bold text-white">${z.name}</td>
+                    <td class="p-3 text-amber-400">${z.top} - ${z.bot}</td>
+                    <td class="p-3">${gross.toFixed(1)}</td>
+                    <td class="p-3 font-bold ${netPay > 0 ? 'text-amber-400' : 'text-slate-500'}">${netPay.toFixed(1)}</td>
+                    <td class="p-3 text-emerald-400">${ntg.toFixed(1)}%</td>
+                    <td class="p-3">${avgVsh.toFixed(0)}%</td>
+                    <td class="p-3 text-sky-300">${avgPhie.toFixed(1)}%</td>
+                    <td class="p-3">${avgPerm.toFixed(0)} mD</td>
+                    <td class="p-3 text-cyan-300">${avgSw.toFixed(1)}%</td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${domFluid.includes('Gas') ? 'bg-red-500/20 text-red-400' : domFluid.includes('Oil') ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-800 text-slate-400'}">${domFluid}</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Multi-Track Canvas Renderer
+        function renderMultiTrackCanvas() {
+            const canvas = document.getElementById('canvas-multi-track');
+            const ctx = canvas.getContext('2d');
+
+            const trackW = 140;
+            const depthW = 50;
+            const headerH = 85;
+
+            // Track X Coordinates
+            const t1X = 10;
+            const depthX = t1X + trackW;
+            const t2X = depthX + depthW;
+            const t3X = t2X + trackW;
+            const t4X = t3X + trackW;
+            const t5X = t4X + trackW; // Interpretation Column Track (Width 160)
+            const totalWidth = t5X + 170;
+
+            const totalDepthRange = appState.wellMeta.stopDepth - appState.wellMeta.startDepth;
+            const canvasHeight = headerH + (totalDepthRange * appState.scaleY);
+
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = totalWidth * dpr;
+            canvas.height = canvasHeight * dpr;
+            canvas.style.width = `${totalWidth}px`;
+            canvas.style.height = `${canvasHeight}px`;
+
+            ctx.save();
+            ctx.scale(dpr, dpr);
+
+            // Canvas Background
+            ctx.fillStyle = '#020610';
+            ctx.fillRect(0, 0, totalWidth, canvasHeight);
+
+            const depthToY = (d) => headerH + (d - appState.wellMeta.startDepth) * appState.scaleY;
+
+            // Draw Track Headers
+            drawTrackHeader(ctx, t1X, 0, trackW, headerH, "TRACK 1: LITOLOGI", [
+                { name: "GR (0 - 150 API)", color: "#10b981" },
+                { name: "CALI (6 - 16 in)", color: "#f59e0b", dash: true }
+            ]);
+
+            drawTrackHeader(ctx, depthX, 0, depthW, headerH, "DEPTH", [
+                { name: "METER", color: "#94a3b8" }
+            ]);
+
+            drawTrackHeader(ctx, t2X, 0, trackW, headerH, "TRACK 2: RESISTIVITAS", [
+                { name: "RDEP (0.2 - 2000)", color: "#ef4444" },
+                { name: "Ro (Water Line)", color: "#38bdf8", dash: true }
+            ]);
+
+            drawTrackHeader(ctx, t3X, 0, trackW, headerH, "TRACK 3: POROSITAS", [
+                { name: "NPHI (0.45 to -0.15)", color: "#06b6d4" },
+                { name: "RHOB (1.95 to 2.95)", color: "#f43f5e" }
+            ]);
+
+            drawTrackHeader(ctx, t4X, 0, trackW, headerH, "TRACK 4: COMPUTED", [
+                { name: "PHIE (0 - 40%)", color: "#38bdf8" },
+                { name: "PERM (0.01 - 10k)", color: "#10b981", dash: true }
+            ]);
+
+            drawTrackHeader(ctx, t5X, 0, 160, headerH, "INTERPRETASI OTOMATIS", [
+                { name: "Fluid | Litho | Pay | Target", color: "#facc15" }
+            ]);
+
+            // Draw Track Backgrounds
+            [t1X, t2X, t3X, t4X, t5X].forEach((x, idx) => {
+                const w = (idx === 4) ? 160 : trackW;
+                ctx.fillStyle = '#0f172a';
+                ctx.fillRect(x, headerH, w, canvasHeight - headerH);
+                ctx.strokeStyle = '#1e293b';
+                ctx.strokeRect(x, headerH, w, canvasHeight - headerH);
+            });
+
+            // Depth Track
+            ctx.fillStyle = '#090d16';
+            ctx.fillRect(depthX, headerH, depthW, canvasHeight - headerH);
+            ctx.strokeStyle = '#334155';
+            ctx.strokeRect(depthX, headerH, depthW, canvasHeight - headerH);
+
+            // Horizontal Gridlines & Depth Labels
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.font = '10px "JetBrains Mono", monospace';
+
+            for (let d = Math.ceil(appState.wellMeta.startDepth); d <= appState.wellMeta.stopDepth; d += 1) {
+                const y = depthToY(d);
+                const isMajor = (d % 10 === 0);
+
+                [t1X, t2X, t3X, t4X, t5X].forEach((x, idx) => {
+                    const w = (idx === 4) ? 160 : trackW;
+                    ctx.strokeStyle = isMajor ? '#334155' : '#1e293b';
+                    ctx.lineWidth = isMajor ? 0.8 : 0.4;
+                    ctx.beginPath();
+                    ctx.moveTo(x, y);
+                    ctx.lineTo(x + w, y);
+                    ctx.stroke();
+                });
+
+                if (isMajor) {
+                    ctx.fillStyle = '#94a3b8';
+                    ctx.fillText(d.toFixed(0), depthX + depthW / 2, y);
+                }
+            }
+
+            const data = appState.computedLogs;
+            if (!data || data.length === 0) return;
+
+            // --- TRACK 1: Lithology Fill & GR ---
+            const grCleanX = t1X + getLinearX(appState.petroParams.grClean, 0, 150, trackW);
+            ctx.beginPath();
+            ctx.moveTo(grCleanX, depthToY(data[0].depth));
+            data.forEach(d => ctx.lineTo(t1X + getLinearX(d.gr, 0, 150, trackW), depthToY(d.depth)));
+            ctx.lineTo(t1X + trackW, depthToY(data[data.length - 1].depth));
+            ctx.lineTo(t1X + trackW, depthToY(data[0].depth));
+            ctx.fillStyle = 'rgba(161, 98, 7, 0.35)'; // Shale Brown
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.moveTo(t1X, depthToY(data[0].depth));
+            data.forEach(d => ctx.lineTo(t1X + getLinearX(d.gr, 0, 150, trackW), depthToY(d.depth)));
+            ctx.lineTo(t1X, depthToY(data[data.length - 1].depth));
+            ctx.fillStyle = 'rgba(234, 179, 8, 0.35)'; // Sand Yellow
+            ctx.fill();
+
+            drawCurve(ctx, data, d => t1X + getLinearX(d.gr, 0, 150, trackW), depthToY, '#10b981', 1.5);
+
+            // --- TRACK 2: Resistivity & Ro Overlay ---
+            const getLogResX = (val) => {
+                const lVal = Math.log10(Math.max(0.2, val));
+                return ((lVal - Math.log10(0.2)) / (Math.log10(2000) - Math.log10(0.2))) * trackW;
+            };
+
+            // Hydrocarbon Separation Fill (RDEP >> Ro)
+            for (let i = 0; i < data.length - 1; i++) {
+                const d1 = data[i]; const d2 = data[i + 1];
+                const xR1 = t2X + getLogResX(d1.rdep); const xRo1 = t2X + getLogResX(d1.ro);
+                const xR2 = t2X + getLogResX(d2.rdep); const xRo2 = t2X + getLogResX(d2.ro);
+
+                if (xR1 > xRo1) {
+                    ctx.beginPath();
+                    ctx.moveTo(xRo1, depthToY(d1.depth));
+                    ctx.lineTo(xR1, depthToY(d1.depth));
+                    ctx.lineTo(xR2, depthToY(d2.depth));
+                    ctx.lineTo(xRo2, depthToY(d2.depth));
+                    ctx.closePath();
+                    ctx.fillStyle = 'rgba(239, 68, 68, 0.25)'; // Hydrocarbon separation shade
+                    ctx.fill();
+                }
+            }
+
+            drawCurve(ctx, data, d => t2X + getLogResX(d.rdep), depthToY, '#ef4444', 1.8);
+            drawCurve(ctx, data, d => t2X + getLogResX(d.ro), depthToY, '#38bdf8', 1.2, [3, 2]);
+
+            // --- TRACK 3: Porosity & Gas Crossover Fill ---
+            const getNphiX = (val) => t3X + getLinearX(val, 0.45, -0.15, trackW);
+            const getRhobX = (val) => t3X + getLinearX(val, 1.95, 2.95, trackW);
+
+            for (let i = 0; i < data.length - 1; i++) {
+                const d1 = data[i]; const d2 = data[i + 1];
+                const xN1 = getNphiX(d1.nphi); const xR1 = getRhobX(d1.rhob);
+                const xN2 = getNphiX(d2.nphi); const xR2 = getRhobX(d2.rhob);
+
+                if (xN1 > xR1 || xN2 > xR2) {
+                    ctx.beginPath();
+                    ctx.moveTo(xR1, depthToY(d1.depth));
+                    ctx.lineTo(xN1, depthToY(d1.depth));
+                    ctx.lineTo(xN2, depthToY(d2.depth));
+                    ctx.lineTo(xR2, depthToY(d2.depth));
+                    ctx.closePath();
+                    ctx.fillStyle = 'rgba(250, 204, 21, 0.85)'; // Yellow Gas Crossover
+                    ctx.fill();
+                }
+            }
+
+            drawCurve(ctx, data, d => getNphiX(d.nphi), depthToY, '#06b6d4', 1.5);
+            drawCurve(ctx, data, d => getRhobX(d.rhob), depthToY, '#f43f5e', 1.5);
+
+            // --- TRACK 4: PHIE & Permeability ---
+            const getPermX = (val) => {
+                const lVal = Math.log10(Math.max(0.01, val));
+                return ((lVal - Math.log10(0.01)) / (Math.log10(10000) - Math.log10(0.01))) * trackW;
+            };
+
+            drawCurve(ctx, data, d => t4X + getLinearX(d.phie, 0, 0.40, trackW), depthToY, '#38bdf8', 1.5);
+            drawCurve(ctx, data, d => t4X + getPermX(d.perm), depthToY, '#10b981', 1.2, [3, 2]);
+
+            // --- TRACK 5: AUTOMATED INTERPRETATION COLUMN ---
+            const cFluidX = t5X;
+            const cLithoX = t5X + 40;
+            const cPayX = t5X + 80;
+            const cTargetX = t5X + 120;
+            const colW = 40;
+
+            data.forEach(d => {
+                const y = depthToY(d.depth);
+                const h = appState.scaleY * appState.wellMeta.step + 0.5;
+
+                // 1. Fluid Column
+                if (d.fluidType === 'Gas') ctx.fillStyle = '#ef4444';      // Red
+                else if (d.fluidType === 'Oil') ctx.fillStyle = '#22c55e'; // Green
+                else if (d.fluidType === 'Water') ctx.fillStyle = '#3b82f6';// Blue
+                else ctx.fillStyle = '#475569';                             // Slate Shale
+
+                ctx.fillRect(cFluidX, y, colW, h);
+
+                // 2. Lithology Column
+                if (d.isSand) ctx.fillStyle = '#eab308'; // Sandstone
+                else ctx.fillStyle = '#64748b';          // Shale
+                ctx.fillRect(cLithoX, y, colW, h);
+
+                // 3. Net Pay Column
+                if (d.isPay) {
+                    ctx.fillStyle = '#facc15';
+                    ctx.fillRect(cPayX, y, colW, h);
+                }
+            });
+
+            // Draw Target Guns / Perforation Markers
+            appState.perfTargets.forEach(t => {
+                const topY = depthToY(t.top);
+                const botY = depthToY(t.bottom);
+                const h = botY - topY;
+
+                ctx.fillStyle = 'rgba(220, 38, 38, 0.7)'; // Red Target Bar
+                ctx.fillRect(cTargetX, topY, colW, h);
+                ctx.strokeStyle = '#ffffff';
+                ctx.strokeRect(cTargetX, topY, colW, h);
+            });
+
+            // Draw Column Dividers
+            [cFluidX, cLithoX, cPayX, cTargetX, t5X + 160].forEach(x => {
+                ctx.strokeStyle = '#334155';
+                ctx.beginPath(); ctx.moveTo(x, headerH); ctx.lineTo(x, canvasHeight); ctx.stroke();
+            });
+
+            // Draw Contact Line Callouts (GOC & OWC)
+            if (appState.contacts.goc) {
+                const y = depthToY(appState.contacts.goc);
+                drawContactMarker(ctx, t1X, t5X + 160, y, "GOC: " + appState.contacts.goc.toFixed(1) + "m", "#facc15");
+            }
+            if (appState.contacts.owc) {
+                const y = depthToY(appState.contacts.owc);
+                drawContactMarker(ctx, t1X, t5X + 160, y, "OWC: " + appState.contacts.owc.toFixed(1) + "m", "#38bdf8");
+            }
+
+            // --- CROSSHAIR INSPECTOR ---
+            if (appState.hoverIdx >= 0 && appState.hoverIdx < data.length) {
+                const hData = data[appState.hoverIdx];
+                const hy = depthToY(hData.depth);
+
+                ctx.strokeStyle = '#ef4444';
+                ctx.lineWidth = 1.2;
+                ctx.setLineDash([4, 4]);
+                ctx.beginPath();
+                ctx.moveTo(t1X, hy);
+                ctx.lineTo(t5X + 160, hy);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+
+            ctx.restore();
+        }
+
+        function drawTrackHeader(ctx, x, y, w, h, title, curves) {
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(x, y, w, h);
+            ctx.strokeStyle = '#334155';
+            ctx.strokeRect(x, y, w, h);
+
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 11px Inter, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(title, x + w / 2, y + 16);
+
+            let currY = y + 34;
+            curves.forEach(c => {
+                ctx.fillStyle = c.color;
+                ctx.font = '10px "JetBrains Mono", monospace';
+                ctx.fillText(c.name, x + w / 2, currY);
+
+                ctx.strokeStyle = c.color;
+                ctx.lineWidth = 1.5;
+                if (c.dash) ctx.setLineDash([3, 2]);
+                ctx.beginPath();
+                ctx.moveTo(x + 10, currY + 4);
+                ctx.lineTo(x + w - 10, currY + 4);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                currY += 16;
+            });
+        }
+
+        function drawCurve(ctx, data, xFunc, yFunc, color, width, dash = []) {
+            if (!data || data.length === 0) return;
+            ctx.strokeStyle = color;
+            ctx.lineWidth = width;
+            if (dash.length > 0) ctx.setLineDash(dash);
+
+            ctx.beginPath();
+            ctx.moveTo(xFunc(data[0]), yFunc(data[0].depth));
+            for (let i = 1; i < data.length; i++) {
+                ctx.lineTo(xFunc(data[i]), yFunc(data[i].depth));
+            }
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        function drawContactMarker(ctx, xStart, xEnd, y, label, color) {
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.setLineDash([6, 3]);
+            ctx.beginPath(); ctx.moveTo(xStart, y); ctx.lineTo(xEnd, y); ctx.stroke();
+            ctx.setLineDash([]);
+
+            ctx.fillStyle = color;
+            ctx.font = 'bold 10px "JetBrains Mono", monospace';
+            ctx.textAlign = 'left';
+            ctx.fillText(label, xStart + 5, y - 4);
+        }
+
+        function getLinearX(val, min, max, width) {
+            const clamped = Math.max(Math.min(val, Math.max(min, max)), Math.min(min, max));
+            return ((clamped - min) / (max - min)) * width;
+        }
+
+        // Crossplots Renderer
+        function initCrossplots() {
+            const ctx1 = document.getElementById('chart-nphi-rhob').getContext('2d');
+            appState.charts.nphiRhob = new Chart(ctx1, {
+                type: 'scatter',
+                data: { datasets: [] },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { title: { display: true, text: 'NPHI (v/v)', color: '#94a3b8' }, reverse: true, min: -0.05, max: 0.45, grid: { color: '#1e293b' } },
+                        y: { title: { display: true, text: 'RHOB (g/cc)', color: '#94a3b8' }, reverse: true, min: 1.9, max: 2.95, grid: { color: '#1e293b' } }
+                    },
+                    plugins: { legend: { labels: { color: '#f8fafc' } } }
+                }
+            });
+
+            const ctx2 = document.getElementById('chart-pickett').getContext('2d');
+            appState.charts.pickett = new Chart(ctx2, {
+                type: 'scatter',
+                data: { datasets: [] },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { type: 'logarithmic', title: { display: true, text: 'Porosity PHIE (v/v)', color: '#94a3b8' }, min: 0.01, max: 0.5, grid: { color: '#1e293b' } },
+                        y: { type: 'logarithmic', title: { display: true, text: 'Deep Resistivity Rt (Ω.m)', color: '#94a3b8' }, min: 0.1, max: 2000, grid: { color: '#1e293b' } }
+                    },
+                    plugins: { legend: { labels: { color: '#f8fafc' } } }
+                }
+            });
+        }
+
+        function updateCrossplots() {
+            if (!appState.charts.nphiRhob) return;
+
+            const gasPts = appState.computedLogs.filter(d => d.fluidType === 'Gas').map(d => ({ x: d.nphi, y: d.rhob }));
+            const oilPts = appState.computedLogs.filter(d => d.fluidType === 'Oil').map(d => ({ x: d.nphi, y: d.rhob }));
+            const otherPts = appState.computedLogs.filter(d => d.fluidType !== 'Gas' && d.fluidType !== 'Oil').map(d => ({ x: d.nphi, y: d.rhob }));
+
+            appState.charts.nphiRhob.data = {
+                datasets: [
+                    { label: 'Gas Zone', data: gasPts, backgroundColor: '#ef4444', pointRadius: 4 },
+                    { label: 'Oil Zone', data: oilPts, backgroundColor: '#22c55e', pointRadius: 4 },
+                    { label: 'Water / Shale', data: otherPts, backgroundColor: '#3b82f6', pointRadius: 2 }
+                ]
+            };
+            appState.charts.nphiRhob.update();
+
+            const pickettGas = appState.computedLogs.filter(d => d.fluidType === 'Gas').map(d => ({ x: d.phie, y: d.rdep }));
+            const pickettOil = appState.computedLogs.filter(d => d.fluidType === 'Oil').map(d => ({ x: d.phie, y: d.rdep }));
+            const pickettOther = appState.computedLogs.filter(d => d.fluidType !== 'Gas' && d.fluidType !== 'Oil').map(d => ({ x: d.phie, y: d.rdep }));
+
+            appState.charts.pickett.data = {
+                datasets: [
+                    { label: 'Gas Pay', data: pickettGas, backgroundColor: '#ef4444', pointRadius: 4 },
+                    { label: 'Oil Pay', data: pickettOil, backgroundColor: '#22c55e', pointRadius: 4 },
+                    { label: 'Water / Matrix', data: pickettOther, backgroundColor: '#06b6d4', pointRadius: 2 }
+                ]
+            };
+            appState.charts.pickett.update();
+        }
+
+        // LAS 2.0 Exporter
+        function exportRawLAS() {
+            let las = `~VERSION INFORMATION\nVERS.                  2.0 : CWLS LOG ASCII STANDARD\nWRAP.                   NO : ONE LINE PER DEPTH STEP\n~WELL INFORMATION\nWELL.            ${appState.wellMeta.name} : WELL NAME\nSTRT.M           ${appState.wellMeta.startDepth.toFixed(4)} : START DEPTH\nSTOP.M           ${appState.wellMeta.stopDepth.toFixed(4)} : STOP DEPTH\nSTEP.M           ${appState.wellMeta.step.toFixed(4)} : STEP\n~CURVE INFORMATION\nDEPTH.M                                 : 1 DEPTH\nGR.API                                  : 2 GAMMA RAY\nRDEP.OHMM                               : 3 DEEP RESISTIVITY\nNPHI.V/V                                : 4 NEUTRON POROSITY\nRHOB.G/CC                               : 5 BULK DENSITY\n~A\n`;
+            
+            appState.rawLogs.forEach(d => {
+                las += `${d.depth.toFixed(2).padStart(8)} ${d.gr.toFixed(2).padStart(8)} ${d.rdep.toFixed(2).padStart(8)} ${d.nphi.toFixed(4).padStart(8)} ${d.rhob.toFixed(4).padStart(8)}\n`;
+            });
+
+            downloadBlob(las, `${appState.wellMeta.name}_RAW.las`, 'text/plain');
+        }
+
+        // CSV Exporter
+        function exportInterpretedCSV() {
+            let csv = "DEPTH,GR,RDEP,NPHI,RHOB,VSH,PHIE,SW,RO,PERM_MD,FLUID_TYPE,IS_PAY\n";
+            appState.computedLogs.forEach(d => {
+                csv += `${d.depth.toFixed(2)},${d.gr.toFixed(2)},${d.rdep.toFixed(2)},${d.nphi.toFixed(4)},${d.rhob.toFixed(4)},${d.vsh.toFixed(3)},${d.phie.toFixed(3)},${d.sw.toFixed(3)},${d.ro.toFixed(2)},${d.perm.toFixed(1)},${d.fluidType},${d.isPay ? 1 : 0}\n`;
+            });
+
+            downloadBlob(csv, `${appState.wellMeta.name}_INTERPRETED_RESULTS.csv`, 'text/csv');
+        }
+
+        function downloadBlob(content, filename, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Custom File Parser (LAS 2.0 / CSV)
+        function handleFileUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const text = evt.target.result;
+                const lines = text.split('\n');
+                const parsedLogs = [];
+
+                let inData = false;
+                lines.forEach(line => {
+                    const trimmed = line.trim();
+                    if (!trimmed || trimmed.startsWith('#')) return;
+
+                    if (trimmed.startsWith('~A') || trimmed.startsWith('DEPTH')) {
+                        inData = true;
+                        return;
+                    }
+
+                    if (inData) {
+                        const cols = trimmed.split(/[\s,]+/).map(v => parseFloat(v));
+                        if (cols.length >= 5 && !isNaN(cols[0])) {
+                            parsedLogs.push({
+                                depth: cols[0],
+                                gr: cols[1] || 40,
+                                rdep: cols[2] || 5,
+                                nphi: cols[3] || 0.2,
+                                rhob: cols[4] || 2.3,
+                                cali: 8.5, sp: -20, rmed: cols[2] || 5, rsha: cols[2] || 5, dt: 90
+                            });
+                        }
+                    }
+                });
+
+                if (parsedLogs.length > 5) {
+                    appState.wellMeta.name = file.name.split('.')[0].toUpperCase();
+                    appState.wellMeta.startDepth = parsedLogs[0].depth;
+                    appState.wellMeta.stopDepth = parsedLogs[parsedLogs.length - 1].depth;
+                    appState.rawLogs = parsedLogs;
+                    runInterpretationEngine();
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Event Listeners Binding
+        function bindEvents() {
+            // Tabs Navigation
+            const tabs = ['log', 'report', 'crossplots', 'params'];
+            tabs.forEach(t => {
+                document.getElementById(`tab-btn-${t}`).addEventListener('click', () => {
+                    tabs.forEach(o => {
+                        document.getElementById(`tab-btn-${o}`).classList.remove('active');
+                        document.getElementById(`container-tab-${o}`).classList.add('hidden');
+                    });
+                    document.getElementById(`tab-btn-${t}`).classList.add('active');
+                    document.getElementById(`container-tab-${t}`).classList.remove('hidden');
+
+                    if (t === 'crossplots') updateCrossplots();
+                });
+            });
+
+            // Preset Well Switcher
+            document.getElementById('sel-preset-well').addEventListener('change', (e) => {
+                generateWellData(e.target.value);
+            });
+
+            // Sliders
+            document.getElementById('sld-vsh-cut').addEventListener('input', (e) => {
+                appState.petroParams.vshCutoff = parseFloat(e.target.value) / 100;
+                document.getElementById('val-vsh-cut').textContent = `${e.target.value}%`;
+                runInterpretationEngine();
+            });
+            document.getElementById('sld-phi-cut').addEventListener('input', (e) => {
+                appState.petroParams.phiCutoff = parseFloat(e.target.value) / 100;
+                document.getElementById('val-phi-cut').textContent = `${e.target.value}%`;
+                runInterpretationEngine();
+            });
+            document.getElementById('sld-sw-cut').addEventListener('input', (e) => {
+                appState.petroParams.swCutoff = parseFloat(e.target.value) / 100;
+                document.getElementById('val-sw-cut').textContent = `${e.target.value}%`;
+                runInterpretationEngine();
+            });
+            document.getElementById('inp-rw').addEventListener('change', (e) => {
+                appState.petroParams.rw = parseFloat(e.target.value);
+                runInterpretationEngine();
+            });
+
+            // Zoom
+            document.getElementById('btn-zoom-in').addEventListener('click', () => {
+                appState.scaleY = Math.min(25.0, appState.scaleY * 1.25);
+                renderMultiTrackCanvas();
+            });
+            document.getElementById('btn-zoom-out').addEventListener('click', () => {
+                appState.scaleY = Math.max(2.0, appState.scaleY / 1.25);
+                renderMultiTrackCanvas();
+            });
+
+            // File Downloads & Upload
+            document.getElementById('btn-download-las').addEventListener('click', exportRawLAS);
+            document.getElementById('btn-download-csv').addEventListener('click', exportInterpretedCSV);
+            document.getElementById('file-input-log').addEventListener('change', handleFileUpload);
+
+            // Canvas Mouse Inspector
+            const canvas = document.getElementById('canvas-multi-track');
+            canvas.addEventListener('mousemove', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const mouseY = e.clientY - rect.top;
+                const headerH = 85;
+
+                if (mouseY < headerH) {
+                    appState.hoverIdx = -1;
+                    renderMultiTrackCanvas();
+                    return;
+                }
+
+                const currentDepth = appState.wellMeta.startDepth + (mouseY - headerH) / appState.scaleY;
+                const step = appState.wellMeta.step;
+                const idx = Math.round((currentDepth - appState.wellMeta.startDepth) / step);
+
+                if (idx >= 0 && idx < appState.computedLogs.length) {
+                    appState.hoverIdx = idx;
+                    const d = appState.computedLogs[idx];
+
+                    document.getElementById('insp-depth').textContent = `${d.depth.toFixed(2)} m`;
+                    document.getElementById('insp-gr').textContent = d.gr.toFixed(1);
+                    document.getElementById('insp-rdep').textContent = d.rdep.toFixed(1);
+                    document.getElementById('insp-ro').textContent = d.ro.toFixed(2);
+                    document.getElementById('insp-nphi').textContent = d.nphi.toFixed(2);
+                    document.getElementById('insp-rhob').textContent = d.rhob.toFixed(2);
+                    document.getElementById('insp-phie').textContent = `${(d.phie * 100).toFixed(1)}%`;
+                    document.getElementById('insp-sw').textContent = `${(d.sw * 100).toFixed(1)}%`;
+                    document.getElementById('insp-perm').textContent = `${d.perm.toFixed(0)} mD`;
+
+                    const fluidBadge = document.getElementById('insp-fluid');
+                    fluidBadge.textContent = d.fluidType.toUpperCase();
+                    if (d.fluidType === 'Gas') fluidBadge.className = "px-1.5 py-0.5 rounded text-[10px] font-sans font-bold bg-red-500/20 text-red-400 border border-red-500/30";
+                    else if (d.fluidType === 'Oil') fluidBadge.className = "px-1.5 py-0.5 rounded text-[10px] font-sans font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+                    else if (d.fluidType === 'Water') fluidBadge.className = "px-1.5 py-0.5 rounded text-[10px] font-sans font-bold bg-sky-500/20 text-sky-400 border border-sky-500/30";
+                    else fluidBadge.className = "px-1.5 py-0.5 rounded text-[10px] font-sans font-bold bg-slate-800 text-slate-400";
+
+                    renderMultiTrackCanvas();
+                }
+            });
+
+            canvas.addEventListener('mouseleave', () => {
+                appState.hoverIdx = -1;
+                renderMultiTrackCanvas();
+            });
+        }
+
+        // Initialize Application
+        window.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            bindEvents();
+            initCrossplots();
+            generateWellData('Alpha-01');
+        });
+    </script>
+</body>
+</html>
