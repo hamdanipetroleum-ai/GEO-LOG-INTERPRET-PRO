@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GEO-LOG INTERPRET PRO - Sistem Interpretasi Otomatis Log Sumur Migas</title>
+    <title>GEO-LOG INTERPRET PRO - Visualisasi & Ekspor Gambar Log Sumur Migas</title>
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -21,10 +21,6 @@
             theme: {
                 extend: {
                     colors: {
-                        oil: {
-                            500: '#eab308',
-                            600: '#ca8a04',
-                        },
                         geodark: {
                             800: '#0f172a',
                             850: '#0b1329',
@@ -50,7 +46,7 @@
             font-family: 'JetBrains+Mono', monospace;
         }
 
-        /* Scrollbar Styling */
+        /* Custom Scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
@@ -75,51 +71,57 @@
 </head>
 <body class="min-h-screen flex flex-col overflow-x-hidden">
 
-    <!-- Top Header Bar -->
-    <header class="bg-geodark-850 border-b border-slate-800 px-4 py-3 flex flex-wrap items-center justify-between sticky top-0 z-50 shadow-2xl">
+    <!-- Top Main Header Bar -->
+    <header class="bg-geodark-850 border-b border-slate-800 px-4 py-3 flex flex-wrap items-center justify-between sticky top-0 z-40 shadow-2xl">
         <div class="flex items-center space-x-3">
             <div class="bg-gradient-to-br from-amber-500 via-amber-600 to-sky-600 p-2.5 rounded-xl shadow-lg shadow-amber-500/10 flex items-center justify-center">
-                <i data-lucide="cpu" class="w-6 h-6 text-white"></i>
+                <i data-lucide="layers" class="w-6 h-6 text-white"></i>
             </div>
             <div>
                 <div class="flex items-center space-x-2">
                     <h1 class="font-extrabold text-xl tracking-tight text-white flex items-center gap-1.5">
-                        GEO-LOG <span class="text-amber-400">INTERPRET</span> <span class="text-sky-400 font-mono text-xs px-2 py-0.5 rounded bg-sky-950 border border-sky-800">PRO v4.0</span>
+                        GEO-LOG <span class="text-amber-400">INTERPRET</span> <span class="text-sky-400 font-mono text-xs px-2 py-0.5 rounded bg-sky-950 border border-sky-800">JPG-PRO</span>
                     </h1>
                 </div>
-                <p class="text-[11px] text-slate-400">Platform Pembacaan, Interpretasi Otomatis & Visualisasi Log Sumur Migas</p>
+                <p class="text-[11px] text-slate-400">Platform Visualisasi, Interpretasi Petrofisika & Ekspor Gambar Log JPG Resolusi Tinggi</p>
             </div>
         </div>
 
-        <!-- Well Preset Selector & File Actions -->
+        <!-- Well Selector & Export Actions -->
         <div class="flex flex-wrap items-center gap-2 my-2 sm:my-0">
             <!-- Preset Well Dropdown -->
-            <div class="flex items-center bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs">
+            <div class="flex items-center bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs">
                 <i data-lucide="map-pin" class="w-3.5 h-3.5 text-amber-400 mr-1.5"></i>
-                <span class="text-slate-400 mr-2 font-mono">Preset:</span>
+                <span class="text-slate-400 mr-2 font-mono">Sumur:</span>
                 <select id="sel-preset-well" class="bg-transparent text-amber-300 font-semibold font-mono focus:outline-none cursor-pointer">
-                    <option value="Alpha-01" class="bg-slate-900 text-amber-300">Sumur Alpha-01 (Prospek Gas & Minyak)</option>
+                    <option value="Alpha-01" class="bg-slate-900 text-amber-300">Sumur Alpha-01 (Prospek Dual Gas & Minyak)</option>
                     <option value="Beta-02" class="bg-slate-900 text-sky-300">Sumur Beta-02 (Reservoar Air / Wet Sand)</option>
                     <option value="Gamma-03" class="bg-slate-900 text-slate-300">Sumur Gamma-03 (Tight Shaly Sand)</option>
                 </select>
             </div>
 
+            <!-- KEY FEATURE: DOWNLOAD LOG JPG BUTTON -->
+            <button id="btn-open-jpg-modal" class="flex items-center space-x-2 px-3.5 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold text-xs rounded-lg transition shadow-lg shadow-amber-500/20 border border-amber-400">
+                <i data-lucide="image" class="w-4 h-4"></i>
+                <span>Unduh Log JPG (Gambar)</span>
+            </button>
+
             <!-- Download Raw LAS Button -->
             <button id="btn-download-las" class="flex items-center space-x-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-medium rounded-lg transition border border-slate-700 text-slate-200">
                 <i data-lucide="file-code" class="w-4 h-4 text-sky-400"></i>
-                <span class="hidden sm:inline">Unduh LAS Mentah</span>
+                <span class="hidden sm:inline">LAS Mentah</span>
             </button>
 
             <!-- Download Interpreted CSV Button -->
-            <button id="btn-download-csv" class="flex items-center space-x-1.5 px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-xs font-medium text-white rounded-lg transition shadow-md shadow-emerald-700/20">
-                <i data-lucide="download" class="w-4 h-4"></i>
-                <span>Unduh Hasil (CSV)</span>
+            <button id="btn-download-csv" class="flex items-center space-x-1.5 px-3 py-1.5 bg-emerald-800 hover:bg-emerald-700 text-xs font-medium text-white rounded-lg transition border border-emerald-700">
+                <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-300"></i>
+                <span>Hasil (CSV)</span>
             </button>
 
             <!-- Upload Custom File -->
             <label class="flex items-center space-x-1.5 px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-xs font-medium text-white rounded-lg cursor-pointer transition shadow-md shadow-sky-600/20">
                 <i data-lucide="upload-cloud" class="w-4 h-4"></i>
-                <span>Unggah LAS / CSV</span>
+                <span>Unggah LAS/CSV</span>
                 <input type="file" id="file-input-log" accept=".las,.txt,.csv" class="hidden">
             </label>
         </div>
@@ -150,12 +152,30 @@
 
         <!-- Control Sidebar Panel -->
         <aside class="w-full lg:w-80 bg-geodark-850 border-r border-slate-800 flex flex-col h-auto lg:h-[calc(100vh-110px)] overflow-y-auto shrink-0">
+            
+            <!-- Quick Export Panel Banner -->
+            <div class="p-4 border-b border-slate-800 bg-gradient-to-br from-amber-500/10 via-slate-900 to-geodark-850">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <i data-lucide="file-image" class="w-4 h-4"></i>
+                        <span>Ekspor Gambar Log</span>
+                    </span>
+                    <span class="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded font-mono border border-amber-500/30">.JPG</span>
+                </div>
+                <p class="text-[11px] text-slate-400 mb-3">Unduh gambar visualisasi log dalam format JPG resolusi tinggi untuk laporan, presentasi, atau jurnal.</p>
+                <button id="btn-quick-export-jpg" class="w-full py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-lg transition flex items-center justify-center space-x-2 shadow-lg shadow-amber-500/10">
+                    <i data-lucide="download" class="w-4 h-4"></i>
+                    <span>Ekspor JPG Sekarang</span>
+                </button>
+            </div>
+
+            <!-- Petrophysical Cutoffs Sliders -->
             <div class="p-3.5 border-b border-slate-800 bg-slate-900/60 flex items-center justify-between">
                 <span class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                    <i data-lucide="sliders-horizontal" class="w-4 h-4 text-amber-400"></i>
-                    <span>Quick-Look Cutoffs</span>
+                    <i data-lucide="sliders-horizontal" class="w-4 h-4 text-sky-400"></i>
+                    <span>Quick Cutoffs Petrofisika</span>
                 </span>
-                <span class="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded font-mono border border-amber-500/30">Auto Calc</span>
+                <span class="text-[10px] bg-sky-500/20 text-sky-300 px-2 py-0.5 rounded font-mono border border-sky-500/30">Auto Calc</span>
             </div>
 
             <div class="p-4 space-y-4 text-xs">
@@ -201,28 +221,28 @@
                     </div>
                 </div>
 
-                <!-- Quick Summary Stats Panel -->
-                <div class="bg-gradient-to-br from-slate-900 to-geodark-900 p-4 rounded-xl border border-slate-800 space-y-2.5 font-mono">
+                <!-- Summary Stats Panel -->
+                <div class="bg-gradient-to-br from-slate-900 to-geodark-900 p-4 rounded-xl border border-slate-800 space-y-2 font-mono">
                     <span class="text-[11px] text-amber-400 font-sans font-bold uppercase tracking-wider block">Ringkasan Interpretasi</span>
                     <div class="flex justify-between text-xs">
                         <span class="text-slate-400">Total Net Pay:</span>
-                        <span id="sb-netpay" class="text-amber-400 font-bold">59.8 m</span>
+                        <span id="sb-netpay" class="text-amber-400 font-bold">0.0 m</span>
                     </div>
                     <div class="flex justify-between text-xs">
                         <span class="text-slate-400">Pay Gas:</span>
-                        <span id="sb-paygas" class="text-red-400 font-bold">35.0 m</span>
+                        <span id="sb-paygas" class="text-red-400 font-bold">0.0 m</span>
                     </div>
                     <div class="flex justify-between text-xs">
                         <span class="text-slate-400">Pay Minyak:</span>
-                        <span id="sb-payoil" class="text-emerald-400 font-bold">24.8 m</span>
+                        <span id="sb-payoil" class="text-emerald-400 font-bold">0.0 m</span>
                     </div>
                     <div class="flex justify-between text-xs border-t border-slate-800 pt-1.5">
                         <span class="text-slate-400">Kontak GOC:</span>
-                        <span id="sb-goc" class="text-amber-300">2070.0 m</span>
+                        <span id="sb-goc" class="text-amber-300">-</span>
                     </div>
                     <div class="flex justify-between text-xs">
                         <span class="text-slate-400">Kontak OWC:</span>
-                        <span id="sb-owc" class="text-sky-300">2095.0 m</span>
+                        <span id="sb-owc" class="text-sky-300">-</span>
                     </div>
                 </div>
             </div>
@@ -234,7 +254,7 @@
             <!-- TAB 1: MULTI-TRACK LOG VIEWER CANVAS -->
             <div id="container-tab-log" class="flex-1 flex flex-col h-full overflow-hidden">
                 
-                <!-- Crosshair & Hover Live Reading Header -->
+                <!-- Crosshair & Live Reading Header -->
                 <div class="bg-slate-900 border-b border-slate-800 px-4 py-2 flex flex-wrap items-center justify-between text-xs font-mono z-10 shadow-lg gap-2">
                     <div class="flex items-center space-x-2 bg-geodark-950 px-3 py-1 rounded-lg border border-slate-800">
                         <span class="text-slate-500">DEPTH:</span>
@@ -242,42 +262,42 @@
                     </div>
 
                     <div class="flex flex-wrap items-center gap-3 text-[11px]">
-                        <div><span class="text-slate-400">GR:</span> <span id="insp-gr" class="text-emerald-400 font-bold">22.5</span></div>
-                        <div><span class="text-slate-400">RDEP:</span> <span id="insp-rdep" class="text-red-400 font-bold">145.0</span></div>
-                        <div><span class="text-slate-400">Ro:</span> <span id="insp-ro" class="text-sky-400 font-bold">2.1</span></div>
-                        <div><span class="text-slate-400">NPHI:</span> <span id="insp-nphi" class="text-cyan-300 font-bold">0.10</span></div>
-                        <div><span class="text-slate-400">RHOB:</span> <span id="insp-rhob" class="text-rose-400 font-bold">2.12</span></div>
-                        <div><span class="text-slate-400">Φe:</span> <span id="insp-phie" class="text-sky-300 font-bold">22.8%</span></div>
-                        <div><span class="text-slate-400">Sw:</span> <span id="insp-sw" class="text-amber-300 font-bold">18.5%</span></div>
-                        <div><span class="text-slate-400">Perm:</span> <span id="insp-perm" class="text-emerald-300 font-bold">340 mD</span></div>
-                        <div><span class="text-slate-400">Fluida:</span> <span id="insp-fluid" class="px-1.5 py-0.5 rounded text-[10px] font-sans font-bold bg-red-500/20 text-red-400 border border-red-500/30">GAS</span></div>
+                        <div><span class="text-slate-400">GR:</span> <span id="insp-gr" class="text-emerald-400 font-bold">-</span></div>
+                        <div><span class="text-slate-400">RDEP:</span> <span id="insp-rdep" class="text-red-400 font-bold">-</span></div>
+                        <div><span class="text-slate-400">Ro:</span> <span id="insp-ro" class="text-sky-400 font-bold">-</span></div>
+                        <div><span class="text-slate-400">NPHI:</span> <span id="insp-nphi" class="text-cyan-300 font-bold">-</span></div>
+                        <div><span class="text-slate-400">RHOB:</span> <span id="insp-rhob" class="text-rose-400 font-bold">-</span></div>
+                        <div><span class="text-slate-400">Φe:</span> <span id="insp-phie" class="text-sky-300 font-bold">-</span></div>
+                        <div><span class="text-slate-400">Sw:</span> <span id="insp-sw" class="text-amber-300 font-bold">-</span></div>
+                        <div><span class="text-slate-400">Perm:</span> <span id="insp-perm" class="text-emerald-300 font-bold">-</span></div>
+                        <div><span class="text-slate-400">Fluida:</span> <span id="insp-fluid" class="px-1.5 py-0.5 rounded text-[10px] font-sans font-bold bg-slate-800 text-slate-400">-</span></div>
                     </div>
 
-                    <!-- Zoom Scale Buttons -->
+                    <!-- Zoom Controls -->
                     <div class="flex items-center space-x-1">
-                        <button id="btn-zoom-in" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700" title="Zoom In Vertical">
+                        <button id="btn-zoom-in" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700" title="Zoom In Vertikal">
                             <i data-lucide="zoom-in" class="w-3.5 h-3.5"></i>
                         </button>
-                        <button id="btn-zoom-out" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700" title="Zoom Out Vertical">
+                        <button id="btn-zoom-out" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700" title="Zoom Out Vertikal">
                             <i data-lucide="zoom-out" class="w-3.5 h-3.5"></i>
                         </button>
                     </div>
                 </div>
 
-                <!-- Canvas Viewport Scroll Container -->
+                <!-- Canvas Viewport -->
                 <div id="log-viewport" class="flex-1 relative overflow-y-auto overflow-x-auto flex justify-center bg-geodark-950 p-4">
                     <canvas id="canvas-multi-track" class="block cursor-crosshair rounded-xl border border-slate-800 shadow-2xl"></canvas>
                 </div>
             </div>
 
-            <!-- TAB 2: EXECUTIVE REPORT & PERFORATION RECOMMENDATION -->
+            <!-- TAB 2: EXECUTIVE REPORT & PERFORATION RECOMMENDATIONS -->
             <div id="container-tab-report" class="flex-1 p-6 overflow-y-auto hidden space-y-6">
                 
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
                     <div>
                         <h2 class="text-lg font-bold text-white flex items-center gap-2">
                             <i data-lucide="file-check-2" class="w-5 h-5 text-amber-400"></i>
-                            <span>Laporan Interpretasi Otomatis Petrofisika & Geologi Sumur</span>
+                            <span>Laporan Interpretasi Otomatis Petrofisika Sumur</span>
                         </h2>
                         <p class="text-xs text-slate-400 mt-1">Kesimpulan evaluasi otomatis berbasis gabungan aturan petrofisika & algoritma deterministik.</p>
                     </div>
@@ -287,12 +307,12 @@
                     </button>
                 </div>
 
-                <!-- AI / Automated Geological Narrative Summary Card -->
+                <!-- Narrative Summary Card -->
                 <div class="bg-gradient-to-r from-slate-900 via-geodark-850 to-slate-900 p-5 rounded-2xl border border-slate-800 shadow-xl space-y-3">
                     <div class="flex items-center justify-between">
                         <span class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
                             <i data-lucide="sparkles" class="w-4 h-4"></i>
-                            <span>Executive Narrative Summary (AI Geological Engine)</span>
+                            <span>Executive Narrative Summary</span>
                         </span>
                         <span id="badge-well-status" class="px-3 py-1 rounded-full text-xs font-bold font-mono bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">COMMERCIAL PAY WELL</span>
                     </div>
@@ -301,7 +321,7 @@
                     </p>
                 </div>
 
-                <!-- Targeted Perforation Recommendations -->
+                <!-- Perforation Recommendations -->
                 <div class="bg-slate-900/80 rounded-2xl border border-slate-800 overflow-hidden">
                     <div class="p-4 border-b border-slate-800 bg-slate-950 flex items-center justify-between">
                         <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
@@ -317,7 +337,7 @@
                     </div>
                 </div>
 
-                <!-- Zone Breakdown Evaluation Table -->
+                <!-- Zone Breakdown Table -->
                 <div class="bg-slate-900/80 rounded-2xl border border-slate-800 overflow-hidden">
                     <div class="p-4 border-b border-slate-800 bg-slate-950 flex justify-between items-center">
                         <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider">Rincian Evaluasi Petrofisika Per Zona Formasi</h3>
@@ -347,18 +367,17 @@
 
             </div>
 
-            <!-- TAB 3: CROSSPLOTS & PICKETT PLOT -->
+            <!-- TAB 3: CROSSPLOTS -->
             <div id="container-tab-crossplots" class="flex-1 p-6 overflow-y-auto hidden space-y-6">
                 <div>
                     <h2 class="text-lg font-bold text-white flex items-center gap-2">
                         <i data-lucide="scatter-chart" class="w-5 h-5 text-sky-400"></i>
                         <span>Crossplots Petrofisika & Pickett Plot Verifikasi</span>
                     </h2>
-                    <p class="text-xs text-slate-400 mt-1">Gunakan plot ini untuk memverifikasi litologi matriks, efek gas crossover, dan estimasi $R_w$.</p>
+                    <p class="text-xs text-slate-400 mt-1">Gunakan plot ini untuk memverifikasi litologi matriks, efek gas crossover, dan estimasi Rw.</p>
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <!-- Plot 1: NPHI vs RHOB -->
                     <div class="bg-slate-900/80 p-4 rounded-2xl border border-slate-800 flex flex-col h-96">
                         <h3 class="text-xs font-bold text-slate-200 uppercase mb-2 flex items-center justify-between">
                             <span>NPHI vs RHOB Lithology & Gas Plot</span>
@@ -369,7 +388,6 @@
                         </div>
                     </div>
 
-                    <!-- Plot 2: Pickett Plot -->
                     <div class="bg-slate-900/80 p-4 rounded-2xl border border-slate-800 flex flex-col h-96">
                         <h3 class="text-xs font-bold text-slate-200 uppercase mb-2 flex items-center justify-between">
                             <span>Pickett Plot (Log Rt vs Log Φe)</span>
@@ -382,7 +400,7 @@
                 </div>
             </div>
 
-            <!-- TAB 4: PETROPHYSICAL PARAMETERS CALIBRATION -->
+            <!-- TAB 4: CALIBRATION PARAMETERS -->
             <div id="container-tab-params" class="flex-1 p-6 overflow-y-auto hidden max-w-4xl">
                 <div class="border-b border-slate-800 pb-4 mb-6">
                     <h2 class="text-lg font-bold text-white flex items-center gap-2">
@@ -393,8 +411,6 @@
                 </div>
 
                 <div class="space-y-6 text-xs">
-                    
-                    <!-- Archie Parameters -->
                     <div class="bg-slate-900/80 p-5 rounded-2xl border border-slate-800 space-y-4">
                         <h3 class="text-sm font-bold text-amber-400 uppercase">1. Parameter Archie (Saturasi Air Sw)</h3>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -413,7 +429,6 @@
                         </div>
                     </div>
 
-                    <!-- Matrix Densities -->
                     <div class="bg-slate-900/80 p-5 rounded-2xl border border-slate-800 space-y-4">
                         <h3 class="text-sm font-bold text-sky-400 uppercase">2. Densitas Matriks Batuan & Fluida</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -434,11 +449,89 @@
                             <span>Terapkan Parameter & Kalkulasi Ulang</span>
                         </button>
                     </div>
-
                 </div>
             </div>
 
         </main>
+    </div>
+
+    <!-- MODAL DIALOG: EKSPOR GAMBAR LOG JPG -->
+    <div id="modal-jpg-export" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-geodark-850 border border-slate-700 rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in duration-200">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div class="flex items-center space-x-2.5">
+                    <div class="p-2 bg-amber-500/20 text-amber-400 rounded-lg">
+                        <i data-lucide="image" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-white">Ekspor Gambar Log (.JPG)</h3>
+                        <p class="text-xs text-slate-400">Konfigurasi opsi tampilan dan latar belakang gambar gambar log</p>
+                    </div>
+                </div>
+                <button id="btn-close-jpg-modal" class="text-slate-400 hover:text-white transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4 text-xs">
+                <!-- Theme Option -->
+                <div class="space-y-2">
+                    <label class="text-slate-300 font-semibold block">1. Tema Warna Latar Belakang Gambar JPG:</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="flex items-center space-x-2.5 bg-slate-900 border border-amber-500/50 p-3 rounded-xl cursor-pointer hover:border-amber-400 transition">
+                            <input type="radio" name="jpg-theme" value="dark" checked class="accent-amber-500">
+                            <div>
+                                <span class="text-white font-bold block">Tema Dark Navy</span>
+                                <span class="text-[10px] text-slate-400">Ideal untuk tampilan digital / layar</span>
+                            </div>
+                        </label>
+                        <label class="flex items-center space-x-2.5 bg-slate-900 border border-slate-700 p-3 rounded-xl cursor-pointer hover:border-slate-500 transition">
+                            <input type="radio" name="jpg-theme" value="light" class="accent-amber-500">
+                            <div>
+                                <span class="text-white font-bold block">Tema Light White</span>
+                                <span class="text-[10px] text-slate-400">Ideal untuk Cetak PDF & Dokumen</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Resolution Multiplier -->
+                <div class="space-y-2">
+                    <label class="text-slate-300 font-semibold block">2. Resolusi / Kualitas Gambar:</label>
+                    <select id="sel-jpg-resolution" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white font-mono focus:outline-none focus:border-amber-500">
+                        <option value="1">Standar (DPI Layar 1x)</option>
+                        <option value="2" selected>Tinggi (High DPI 2x - Direkomendasikan)</option>
+                        <option value="3">Ultra HD (High DPI 3x)</option>
+                    </select>
+                </div>
+
+                <!-- Watermark Banner Header -->
+                <div class="space-y-2">
+                    <label class="flex items-center space-x-2 text-slate-300 font-semibold cursor-pointer">
+                        <input type="checkbox" id="chk-jpg-header" checked class="accent-amber-500 rounded">
+                        <span>Sertakan Header Title Banner (Nama Sumur, Tanggal, Skala, Parameter)</span>
+                    </label>
+                    <p class="text-[10px] text-slate-500 pl-6">Menambahkan watermark profesional di bagian paling atas gambar log.</p>
+                </div>
+
+                <!-- Filename Preview -->
+                <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800 space-y-1">
+                    <span class="text-[10px] text-slate-500 font-mono uppercase block">Pratinjau Nama Berkas Output:</span>
+                    <span id="jpg-filename-preview" class="font-mono text-amber-400 text-xs font-bold block">WELL-ALPHA-01_LOG_PLOT.jpg</span>
+                </div>
+            </div>
+
+            <!-- Footer Actions -->
+            <div class="flex items-center justify-end space-x-3 border-t border-slate-800 pt-4">
+                <button id="btn-cancel-jpg-modal" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded-xl transition text-xs">
+                    Batal
+                </button>
+                <button id="btn-execute-jpg-download" class="px-5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold rounded-xl transition text-xs shadow-lg shadow-amber-500/20 flex items-center space-x-2">
+                    <i data-lucide="download" class="w-4 h-4"></i>
+                    <span>Unduh File .JPG</span>
+                </button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -478,7 +571,7 @@
             charts: {}
         };
 
-        // Synthetic Well Presets Generator
+        // Generate Synthetic Well Logs
         function generateWellData(presetKey = 'Alpha-01') {
             const startD = 2000.0;
             const stopD = 2200.0;
@@ -491,14 +584,13 @@
                 let gr, cali, sp, rdep, rmed, rsha, nphi, rhob, dt;
 
                 if (presetKey === 'Alpha-01') {
-                    // WELL ALPHA-01: Dual Gas & Oil Prospect
+                    // Alpha-01: Gas & Oil Reservoir
                     if (depth >= 2000 && depth < 2035) {
-                        // Cap Shale
                         gr = 110 + Math.sin(depth * 0.4) * 10 + Math.random() * 5;
                         cali = 9.5; rdep = 1.8; rmed = 1.6; rsha = 1.4;
                         nphi = 0.38; rhob = 2.48; dt = 115;
                     } else if (depth >= 2035 && depth < 2070) {
-                        // GAS SAND RESERVOIR (NPHI < RHOB Crossover)
+                        // Gas Sand
                         gr = 22 + Math.random() * 6;
                         cali = 8.5; 
                         rdep = 145 + Math.sin(depth * 0.2) * 40 + Math.random() * 20;
@@ -507,7 +599,7 @@
                         rhob = 2.12 + Math.random() * 0.02; // Low RHOB
                         dt = 85;
                     } else if (depth >= 2070 && depth < 2095) {
-                        // OIL SAND RESERVOIR
+                        // Oil Sand
                         gr = 26 + Math.random() * 6;
                         cali = 8.5;
                         rdep = 38 + Math.random() * 10;
@@ -516,10 +608,10 @@
                         rhob = 2.26 + Math.random() * 0.03;
                         dt = 92;
                     } else if (depth >= 2095 && depth < 2130) {
-                        // WATER SAND (AQUIFER)
+                        // Water Sand
                         gr = 30 + Math.random() * 8;
                         cali = 8.6;
-                        rdep = 2.1 + Math.random() * 0.5; // Low Rt ~ Ro
+                        rdep = 2.1 + Math.random() * 0.5;
                         rmed = 1.9; rsha = 1.6;
                         nphi = 0.28 + Math.random() * 0.02;
                         rhob = 2.36 + Math.random() * 0.03;
@@ -531,7 +623,7 @@
                         nphi = 0.40; rhob = 2.50; dt = 118;
                     }
                 } else if (presetKey === 'Beta-02') {
-                    // WELL BETA-02: Water Sand / Wet Reservoir
+                    // Beta-02: Water Sand
                     if (depth >= 2040 && depth < 2120) {
                         gr = 25 + Math.random() * 6;
                         cali = 8.5; rdep = 1.8 + Math.random() * 0.4;
@@ -545,13 +637,13 @@
                         nphi = 0.39; rhob = 2.49; dt = 116;
                     }
                 } else {
-                    // WELL GAMMA-03: Tight Shaly Sand
+                    // Gamma-03: Tight Sand
                     if (depth >= 2030 && depth < 2140) {
-                        gr = 68 + Math.random() * 12; // High Vsh
+                        gr = 68 + Math.random() * 12;
                         cali = 8.8; rdep = 12 + Math.random() * 5;
                         rmed = 9; rsha = 6;
                         nphi = 0.18 + Math.random() * 0.03;
-                        rhob = 2.52 + Math.random() * 0.04; // Tight / Low Porosity
+                        rhob = 2.52 + Math.random() * 0.04;
                         dt = 75;
                     } else {
                         gr = 120 + Math.random() * 10;
@@ -568,7 +660,7 @@
             runInterpretationEngine();
         }
 
-        // Automated Petrophysical Interpretation Engine
+        // Automated Interpretation Calculations
         function runInterpretationEngine() {
             const p = appState.petroParams;
             const computed = [];
@@ -576,44 +668,34 @@
             let gocDepth = null;
             let owcDepth = null;
 
-            appState.rawLogs.forEach((d, idx) => {
-                // 1. Vshale Linear
+            appState.rawLogs.forEach((d) => {
                 let vsh = (d.gr - p.grClean) / (p.grShale - p.grClean);
                 vsh = Math.max(0, Math.min(1.0, vsh));
 
-                // 2. Density Porosity
                 let phid = (p.rhoMa - d.rhob) / (p.rhoMa - p.rhoFluid);
                 phid = Math.max(0, Math.min(0.5, phid));
 
-                // 3. Effective Porosity
                 let phiND = Math.sqrt((Math.pow(d.nphi, 2) + Math.pow(phid, 2)) / 2);
                 let phie = phiND * (1 - vsh);
                 phie = Math.max(0.001, Math.min(0.45, phie));
 
-                // 4. Ro (100% Water Saturated Resistivity)
-                // Ro = a * Rw / (PhiE ^ m)
                 let ro = (p.a * p.rw) / Math.pow(phie, p.m);
 
-                // 5. Archie Sw
                 let rt = Math.max(0.1, d.rdep);
                 let swNom = ro / rt;
                 let sw = Math.pow(Math.max(0.0001, swNom), 1 / p.n);
                 sw = Math.max(0.05, Math.min(1.0, sw));
 
-                // 6. Timur Permeability Model
                 let swi = Math.max(0.05, sw * 0.7);
                 let perm = (p.permA * Math.pow(phie * 100, p.permB)) / Math.pow(swi, p.permC);
                 perm = Math.max(0.001, Math.min(10000.0, perm));
 
-                // 7. Reservoir & Pay Cutoffs
                 const isSand = (vsh <= p.vshCutoff);
                 const isReservoir = isSand && (phie >= p.phiCutoff);
                 const isPay = isReservoir && (sw <= p.swCutoff);
 
-                // 8. Automated Fluid Typing Logic
                 let fluidType = 'Shale';
                 if (isReservoir) {
-                    // Check Gas Crossover (NPHI < RHOB Crossover or strong separation with low Sw)
                     const nphiRhobCross = (d.nphi < 0.15 && d.rhob < 2.22) || (d.nphi - phid < -0.04 && sw < 0.35);
                     if (nphiRhobCross && isPay) {
                         fluidType = 'Gas';
@@ -632,7 +714,7 @@
                 });
             });
 
-            // 9. Contact Detection Algorithm (GOC & OWC)
+            // Contact Detection Algorithm
             for (let i = 0; i < computed.length - 1; i++) {
                 if (computed[i].fluidType === 'Gas' && computed[i+1].fluidType === 'Oil' && !gocDepth) {
                     gocDepth = computed[i].depth;
@@ -645,19 +727,15 @@
             appState.computedLogs = computed;
             appState.contacts = { goc: gocDepth, owc: owcDepth };
 
-            // 10. Generate Perforation Targets & Reports
             evaluatePerforationTargets();
             generateNarrativeReport();
             renderMultiTrackCanvas();
             updateCrossplots();
         }
 
-        // Evaluate Targeted Perforation Intervals
         function evaluatePerforationTargets() {
             const data = appState.computedLogs;
-            const step = appState.wellMeta.step;
             const targets = [];
-
             let inPay = false;
             let currentTarget = null;
 
@@ -665,27 +743,16 @@
                 if (d.isPay && !inPay) {
                     inPay = true;
                     currentTarget = {
-                        start: d.depth,
-                        stop: d.depth,
-                        fluid: d.fluidType,
-                        phieSum: d.phie,
-                        permSum: d.perm,
-                        swSum: d.sw,
-                        count: 1
+                        start: d.depth, stop: d.depth, fluid: d.fluidType,
+                        phieSum: d.phie, permSum: d.perm, swSum: d.sw, count: 1
                     };
                 } else if (d.isPay && inPay) {
-                    // If fluid type shifts drastically or gap occurs
                     if (d.fluidType !== currentTarget.fluid) {
                         currentTarget.stop = data[i-1].depth;
                         targets.push(currentTarget);
                         currentTarget = {
-                            start: d.depth,
-                            stop: d.depth,
-                            fluid: d.fluidType,
-                            phieSum: d.phie,
-                            permSum: d.perm,
-                            swSum: d.sw,
-                            count: 1
+                            start: d.depth, stop: d.depth, fluid: d.fluidType,
+                            phieSum: d.phie, permSum: d.perm, swSum: d.sw, count: 1
                         };
                     } else {
                         currentTarget.stop = d.depth;
@@ -702,18 +769,12 @@
                 }
             });
 
-            if (inPay && currentTarget) {
-                targets.push(currentTarget);
-            }
+            if (inPay && currentTarget) targets.push(currentTarget);
 
-            // Filter targets thickness >= 2m
             appState.perfTargets = targets.map(t => {
                 const thick = t.stop - t.start;
                 return {
-                    top: t.start,
-                    bottom: t.stop,
-                    thickness: thick,
-                    fluid: t.fluid,
+                    top: t.start, bottom: t.stop, thickness: thick, fluid: t.fluid,
                     avgPhie: (t.phieSum / t.count) * 100,
                     avgPerm: t.permSum / t.count,
                     avgSw: (t.swSum / t.count) * 100
@@ -721,7 +782,6 @@
             }).filter(t => t.thickness >= 1.5);
         }
 
-        // Generate Dynamic Executive Narrative Report
         function generateNarrativeReport() {
             const data = appState.computedLogs;
             const step = appState.wellMeta.step;
@@ -730,69 +790,52 @@
             let totalNetPay = data.filter(d => d.isPay).length * step;
             let gasPay = data.filter(d => d.fluidType === 'Gas').length * step;
             let oilPay = data.filter(d => d.fluidType === 'Oil').length * step;
-            let totalSand = data.filter(d => d.isSand).length * step;
 
             const goc = appState.contacts.goc;
             const owc = appState.contacts.owc;
 
-            // Sidebar stats
             document.getElementById('sb-netpay').textContent = `${totalNetPay.toFixed(1)} m`;
             document.getElementById('sb-paygas').textContent = `${gasPay.toFixed(1)} m`;
             document.getElementById('sb-payoil').textContent = `${oilPay.toFixed(1)} m`;
-            document.getElementById('sb-goc').textContent = goc ? `${goc.toFixed(1)} m` : 'Tidak Terdeteksi';
-            document.getElementById('sb-owc').textContent = owc ? `${owc.toFixed(1)} m` : 'Tidak Terdeteksi';
+            document.getElementById('sb-goc').textContent = goc ? `${goc.toFixed(1)} m` : '-';
+            document.getElementById('sb-owc').textContent = owc ? `${owc.toFixed(1)} m` : '-';
 
-            // Narrative Paragraph Construction
             let statusBadge = document.getElementById('badge-well-status');
             let narrativeText = '';
 
             if (totalNetPay > 15) {
                 statusBadge.className = "px-3 py-1 rounded-full text-xs font-bold font-mono bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
                 statusBadge.textContent = "PROSPEK SANGAT KOMERSIAL (PAY)";
-
-                narrativeText = `Hasil interpretasi otomatis pada sumur <strong>${name}</strong> (Interval ${appState.wellMeta.startDepth.toFixed(0)}m - ${appState.wellMeta.stopDepth.toFixed(0)}m) mengonfirmasi keberadaan reservoar hidrokarbon prospektif dengan total <strong>Net Pay sebesar ${totalNetPay.toFixed(1)} m</strong>. `;
-                
-                if (gasPay > 0 && oilPay > 0) {
-                    narrativeText += `Sistem mengidentifikasi zona dual-fluid yang terdiri dari <strong>${gasPay.toFixed(1)} m Zona Gas Prospektif</strong> dan <strong>${oilPay.toFixed(1)} m Zona Minyak</strong>. `;
-                } else if (gasPay > 0) {
-                    narrativeText += `Zona hidrokarbon didominasi oleh <strong>Pay Gas sebesar ${gasPay.toFixed(1)} m</strong> dengan karakteristik NPHI-RHOB Crossover yang kuat. `;
-                } else {
-                    narrativeText += `Zona hidrokarbon didominasi oleh <strong>Pay Minyak sebesar ${oilPay.toFixed(1)} m</strong>. `;
-                }
-
-                if (goc) narrativeText += `Kontak Gas-Minyak (GOC) teridentifikasi secara presisi pada kedalaman <strong>${goc.toFixed(1)} m</strong>. `;
-                if (owc) narrativeText += `Kontak Minyak-Air (OWC) berada pada kedalaman <strong>${owc.toFixed(1)} m</strong>. `;
-
-                narrativeText += `Reservoar batupasir memiliki kualitas sangat baik dengan porositas efektif rata-rata tinggi dan permeabilitas hingga orde ratusan mD. Direkomendasikan segera untuk uji DST / penembakan perforasi pada target terpilih.`;
-
+                narrativeText = `Hasil interpretasi otomatis pada sumur <strong>${name}</strong> mengonfirmasi keberadaan reservoar hidrokarbon prospektif dengan total <strong>Net Pay sebesar ${totalNetPay.toFixed(1)} m</strong>. `;
+                if (gasPay > 0) narrativeText += `Teridentifikasi <strong>${gasPay.toFixed(1)} m Pay Gas</strong> dengan efek crossover NPHI-RHOB. `;
+                if (oilPay > 0) narrativeText += `Teridentifikasi <strong>${oilPay.toFixed(1)} m Pay Minyak</strong>. `;
+                if (goc) narrativeText += `Kontak GOC pada <strong>${goc.toFixed(1)} m</strong>. `;
+                if (owc) narrativeText += `Kontak OWC pada <strong>${owc.toFixed(1)} m</strong>. `;
             } else if (totalNetPay > 0) {
                 statusBadge.className = "px-3 py-1 rounded-full text-xs font-bold font-mono bg-amber-500/20 text-amber-300 border border-amber-500/30";
                 statusBadge.textContent = "PROSPEK MARGINAL / TIGHT";
-                narrativeText = `Sumur <strong>${name}</strong> menunjukkan potensi hidrokarbon marginal dengan total Net Pay <strong>${totalNetPay.toFixed(1)} m</strong>. Disarankan evaluasi stimulus fracturing sebelum pengujian lebih lanjut.`;
+                narrativeText = `Sumur <strong>${name}</strong> menunjukkan potensi hidrokarbon marginal dengan total Net Pay <strong>${totalNetPay.toFixed(1)} m</strong>.`;
             } else {
                 statusBadge.className = "px-3 py-1 rounded-full text-xs font-bold font-mono bg-red-500/20 text-red-400 border border-red-500/30";
                 statusBadge.textContent = "SUMUR BASAH / DRY HOLE";
-                narrativeText = `Sumur <strong>${name}</strong> didominasi oleh akumulasi air (aquifer wet sand) atau formasi lempung ketat. Tidak ditemukan akumulasi hidrokarbon komersial pada interval ini.`;
+                narrativeText = `Sumur <strong>${name}</strong> didominasi oleh akumulasi air atau formasi lempung ketat. Tidak ditemukan akumulasi hidrokarbon komersial.`;
             }
 
             document.getElementById('narrative-text').innerHTML = narrativeText;
 
-            // Render Perforation Target Cards
             const perfContainer = document.getElementById('perf-targets-container');
             perfContainer.innerHTML = '';
-
             if (appState.perfTargets.length === 0) {
                 perfContainer.innerHTML = `<p class="text-slate-500 text-xs italic col-span-2">Tidak ada interval Net Pay yang memenuhi syarat perforasi minimum.</p>`;
             } else {
                 appState.perfTargets.forEach((t, idx) => {
                     let fluidColor = t.fluid === 'Gas' ? 'border-red-500/40 bg-red-950/20' : 'border-emerald-500/40 bg-emerald-950/20';
                     let badgeColor = t.fluid === 'Gas' ? 'bg-red-500/20 text-red-400' : 'bg-emerald-500/20 text-emerald-400';
-
                     const card = document.createElement('div');
                     card.className = `p-4 rounded-xl border ${fluidColor} flex flex-col justify-between space-y-2`;
                     card.innerHTML = `
                         <div class="flex items-center justify-between">
-                            <span class="font-bold text-white text-xs">Target #${idx+1}: Interval ${t.top.toFixed(1)}m - ${t.bottom.toFixed(1)}m</span>
+                            <span class="font-bold text-white text-xs">Target #${idx+1}: ${t.top.toFixed(1)}m - ${t.bottom.toFixed(1)}m</span>
                             <span class="px-2 py-0.5 rounded text-[10px] font-bold ${badgeColor}">${t.fluid.toUpperCase()} PAY</span>
                         </div>
                         <div class="grid grid-cols-3 gap-2 text-[11px] font-mono text-slate-300 pt-1 border-t border-slate-800">
@@ -805,10 +848,8 @@
                 });
             }
 
-            // Populate Zone Breakdown Table
             const tbody = document.getElementById('tbody-zones');
             tbody.innerHTML = '';
-            
             const dummyZones = [
                 { name: 'Shale Atas', top: 2000, bot: 2035 },
                 { name: 'Zona Utama (Sand Alpha)', top: 2035, bot: 2095 },
@@ -819,25 +860,14 @@
             dummyZones.forEach(z => {
                 const zData = data.filter(d => d.depth >= z.top && d.depth < z.bot);
                 if (zData.length === 0) return;
-
                 let gross = z.bot - z.top;
                 let payCount = zData.filter(d => d.isPay).length;
                 let netPay = payCount * step;
                 let ntg = (netPay / gross) * 100;
-
                 let avgVsh = (zData.reduce((s, c) => s + c.vsh, 0) / zData.length) * 100;
                 let avgPhie = (zData.reduce((s, c) => s + c.phie, 0) / zData.length) * 100;
                 let avgPerm = zData.reduce((s, c) => s + c.perm, 0) / zData.length;
                 let avgSw = (zData.reduce((s, c) => s + c.sw, 0) / zData.length) * 100;
-
-                // Dominant fluid
-                let gC = zData.filter(d => d.fluidType === 'Gas').length;
-                let oC = zData.filter(d => d.fluidType === 'Oil').length;
-                let wC = zData.filter(d => d.fluidType === 'Water').length;
-                let domFluid = 'Shale';
-                if (gC > oC && gC > wC) domFluid = 'Gas Pay';
-                else if (oC > gC && oC > wC) domFluid = 'Oil Pay';
-                else if (wC > 0) domFluid = 'Water';
 
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-800/50 transition";
@@ -851,93 +881,154 @@
                     <td class="p-3 text-sky-300">${avgPhie.toFixed(1)}%</td>
                     <td class="p-3">${avgPerm.toFixed(0)} mD</td>
                     <td class="p-3 text-cyan-300">${avgSw.toFixed(1)}%</td>
-                    <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${domFluid.includes('Gas') ? 'bg-red-500/20 text-red-400' : domFluid.includes('Oil') ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-800 text-slate-400'}">${domFluid}</span></td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300">${netPay > 0 ? 'Hydrocarbon' : 'Water/Shale'}</span></td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
-        // Multi-Track Canvas Renderer
+        // MAIN CANVAS MULTI-TRACK RENDERER
         function renderMultiTrackCanvas() {
             const canvas = document.getElementById('canvas-multi-track');
+            drawMultiTrackCanvas(canvas, {
+                isExport: false,
+                theme: 'dark',
+                scaleDpi: window.devicePixelRatio || 1,
+                includeHeaderBanner: false
+            });
+        }
+
+        // UNIFIED CANVAS DRAWER ENGINE (Supports Onscreen Display & JPG Export)
+        function drawMultiTrackCanvas(canvas, options = {}) {
+            const {
+                theme = 'dark',
+                scaleDpi = 1,
+                includeHeaderBanner = false
+            } = options;
+
             const ctx = canvas.getContext('2d');
 
+            // Dimensions
             const trackW = 140;
             const depthW = 50;
-            const headerH = 85;
+            const trackHeaderH = 85;
+            const bannerH = includeHeaderBanner ? 70 : 0;
+            const headerH = bannerH + trackHeaderH;
 
-            // Track X Coordinates
             const t1X = 10;
             const depthX = t1X + trackW;
             const t2X = depthX + depthW;
             const t3X = t2X + trackW;
             const t4X = t3X + trackW;
-            const t5X = t4X + trackW; // Interpretation Column Track (Width 160)
+            const t5X = t4X + trackW; // Interpretation Column
             const totalWidth = t5X + 170;
 
             const totalDepthRange = appState.wellMeta.stopDepth - appState.wellMeta.startDepth;
             const canvasHeight = headerH + (totalDepthRange * appState.scaleY);
 
-            const dpr = window.devicePixelRatio || 1;
-            canvas.width = totalWidth * dpr;
-            canvas.height = canvasHeight * dpr;
+            // Set canvas size
+            canvas.width = totalWidth * scaleDpi;
+            canvas.height = canvasHeight * scaleDpi;
             canvas.style.width = `${totalWidth}px`;
             canvas.style.height = `${canvasHeight}px`;
 
             ctx.save();
-            ctx.scale(dpr, dpr);
+            ctx.scale(scaleDpi, scaleDpi);
 
-            // Canvas Background
-            ctx.fillStyle = '#020610';
+            // COLOR PALETTE BY THEME
+            const isDark = (theme === 'dark');
+            const colors = {
+                bg: isDark ? '#020610' : '#ffffff',
+                trackBg: isDark ? '#0f172a' : '#f8fafc',
+                depthBg: isDark ? '#090d16' : '#f1f5f9',
+                border: isDark ? '#1e293b' : '#cbd5e1',
+                gridMajor: isDark ? '#334155' : '#cbd5e1',
+                gridMinor: isDark ? '#1e293b' : '#e2e8f0',
+                textPrimary: isDark ? '#f8fafc' : '#0f172a',
+                textSecondary: isDark ? '#94a3b8' : '#475569',
+                gr: isDark ? '#10b981' : '#059669',
+                cali: isDark ? '#f59e0b' : '#d97706',
+                rdep: isDark ? '#ef4444' : '#dc2626',
+                ro: isDark ? '#38bdf8' : '#0284c7',
+                nphi: isDark ? '#06b6d4' : '#0891b2',
+                rhob: isDark ? '#f43f5e' : '#e11d48',
+                phie: isDark ? '#38bdf8' : '#0284c7',
+                perm: isDark ? '#10b981' : '#059669',
+                gasShade: isDark ? 'rgba(250, 204, 21, 0.85)' : 'rgba(234, 179, 8, 0.80)',
+                hcShade: isDark ? 'rgba(239, 68, 68, 0.25)' : 'rgba(220, 38, 38, 0.20)',
+                sandShade: isDark ? 'rgba(234, 179, 8, 0.35)' : 'rgba(250, 204, 21, 0.35)',
+                shaleShade: isDark ? 'rgba(161, 98, 7, 0.35)' : 'rgba(180, 83, 9, 0.25)'
+            };
+
+            // CRITICAL: Fill solid background to prevent black transparency glitch in JPG export
+            ctx.fillStyle = colors.bg;
             ctx.fillRect(0, 0, totalWidth, canvasHeight);
+
+            // Optional Top Watermark Banner for JPG Export
+            if (includeHeaderBanner) {
+                ctx.fillStyle = isDark ? '#0b1329' : '#e2e8f0';
+                ctx.fillRect(0, 0, totalWidth, bannerH);
+                ctx.strokeStyle = colors.border;
+                ctx.strokeRect(0, 0, totalWidth, bannerH);
+
+                ctx.fillStyle = colors.textPrimary;
+                ctx.font = 'bold 14px Inter, sans-serif';
+                ctx.fillText(`GEO-LOG INTERPRET PRO - WELL LOG REPORT`, 15, 22);
+
+                ctx.font = '11px "JetBrains Mono", monospace';
+                ctx.fillStyle = colors.textSecondary;
+                const dateStr = new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                ctx.fillText(`Sumur: ${appState.wellMeta.name}  |  Interval: ${appState.wellMeta.startDepth.toFixed(0)}m - ${appState.wellMeta.stopDepth.toFixed(0)}m  |  Tanggal Ekspor: ${dateStr}`, 15, 42);
+                ctx.fillText(`Petrofisika: Rw=${appState.petroParams.rw} Ω.m, Max Vsh=${(appState.petroParams.vshCutoff*100).toFixed(0)}%, Min Phi=${(appState.petroParams.phiCutoff*100).toFixed(0)}%, Max Sw=${(appState.petroParams.swCutoff*100).toFixed(0)}%`, 15, 58);
+            }
 
             const depthToY = (d) => headerH + (d - appState.wellMeta.startDepth) * appState.scaleY;
 
             // Draw Track Headers
-            drawTrackHeader(ctx, t1X, 0, trackW, headerH, "TRACK 1: LITOLOGI", [
-                { name: "GR (0 - 150 API)", color: "#10b981" },
-                { name: "CALI (6 - 16 in)", color: "#f59e0b", dash: true }
-            ]);
+            drawTrackHeaderCustom(ctx, t1X, bannerH, trackW, trackHeaderH, "TRACK 1: LITOLOGI", [
+                { name: "GR (0 - 150 API)", color: colors.gr },
+                { name: "CALI (6 - 16 in)", color: colors.cali, dash: true }
+            ], colors);
 
-            drawTrackHeader(ctx, depthX, 0, depthW, headerH, "DEPTH", [
-                { name: "METER", color: "#94a3b8" }
-            ]);
+            drawTrackHeaderCustom(ctx, depthX, bannerH, depthW, trackHeaderH, "DEPTH", [
+                { name: "METER", color: colors.textSecondary }
+            ], colors);
 
-            drawTrackHeader(ctx, t2X, 0, trackW, headerH, "TRACK 2: RESISTIVITAS", [
-                { name: "RDEP (0.2 - 2000)", color: "#ef4444" },
-                { name: "Ro (Water Line)", color: "#38bdf8", dash: true }
-            ]);
+            drawTrackHeaderCustom(ctx, t2X, bannerH, trackW, trackHeaderH, "TRACK 2: RESISTIVITAS", [
+                { name: "RDEP (0.2 - 2000)", color: colors.rdep },
+                { name: "Ro (Water Line)", color: colors.ro, dash: true }
+            ], colors);
 
-            drawTrackHeader(ctx, t3X, 0, trackW, headerH, "TRACK 3: POROSITAS", [
-                { name: "NPHI (0.45 to -0.15)", color: "#06b6d4" },
-                { name: "RHOB (1.95 to 2.95)", color: "#f43f5e" }
-            ]);
+            drawTrackHeaderCustom(ctx, t3X, bannerH, trackW, trackHeaderH, "TRACK 3: POROSITAS", [
+                { name: "NPHI (0.45 to -0.15)", color: colors.nphi },
+                { name: "RHOB (1.95 to 2.95)", color: colors.rhob }
+            ], colors);
 
-            drawTrackHeader(ctx, t4X, 0, trackW, headerH, "TRACK 4: COMPUTED", [
-                { name: "PHIE (0 - 40%)", color: "#38bdf8" },
-                { name: "PERM (0.01 - 10k)", color: "#10b981", dash: true }
-            ]);
+            drawTrackHeaderCustom(ctx, t4X, bannerH, trackW, trackHeaderH, "TRACK 4: COMPUTED", [
+                { name: "PHIE (0 - 40%)", color: colors.phie },
+                { name: "PERM (0.01 - 10k)", color: colors.perm, dash: true }
+            ], colors);
 
-            drawTrackHeader(ctx, t5X, 0, 160, headerH, "INTERPRETASI OTOMATIS", [
-                { name: "Fluid | Litho | Pay | Target", color: "#facc15" }
-            ]);
+            drawTrackHeaderCustom(ctx, t5X, bannerH, 160, trackHeaderH, "INTERPRETASI OTOMATIS", [
+                { name: "Fluid | Litho | Pay | Target", color: '#facc15' }
+            ], colors);
 
-            // Draw Track Backgrounds
+            // Track Backgrounds
             [t1X, t2X, t3X, t4X, t5X].forEach((x, idx) => {
                 const w = (idx === 4) ? 160 : trackW;
-                ctx.fillStyle = '#0f172a';
+                ctx.fillStyle = colors.trackBg;
                 ctx.fillRect(x, headerH, w, canvasHeight - headerH);
-                ctx.strokeStyle = '#1e293b';
+                ctx.strokeStyle = colors.border;
                 ctx.strokeRect(x, headerH, w, canvasHeight - headerH);
             });
 
-            // Depth Track
-            ctx.fillStyle = '#090d16';
+            // Depth Track Background
+            ctx.fillStyle = colors.depthBg;
             ctx.fillRect(depthX, headerH, depthW, canvasHeight - headerH);
-            ctx.strokeStyle = '#334155';
+            ctx.strokeStyle = colors.border;
             ctx.strokeRect(depthX, headerH, depthW, canvasHeight - headerH);
 
-            // Horizontal Gridlines & Depth Labels
+            // Horizontal Depth Lines & Labels
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.font = '10px "JetBrains Mono", monospace';
@@ -948,7 +1039,7 @@
 
                 [t1X, t2X, t3X, t4X, t5X].forEach((x, idx) => {
                     const w = (idx === 4) ? 160 : trackW;
-                    ctx.strokeStyle = isMajor ? '#334155' : '#1e293b';
+                    ctx.strokeStyle = isMajor ? colors.gridMajor : colors.gridMinor;
                     ctx.lineWidth = isMajor ? 0.8 : 0.4;
                     ctx.beginPath();
                     ctx.moveTo(x, y);
@@ -957,7 +1048,7 @@
                 });
 
                 if (isMajor) {
-                    ctx.fillStyle = '#94a3b8';
+                    ctx.fillStyle = colors.textSecondary;
                     ctx.fillText(d.toFixed(0), depthX + depthW / 2, y);
                 }
             }
@@ -965,32 +1056,31 @@
             const data = appState.computedLogs;
             if (!data || data.length === 0) return;
 
-            // --- TRACK 1: Lithology Fill & GR ---
+            // TRACK 1: Lithology Fill & GR
             const grCleanX = t1X + getLinearX(appState.petroParams.grClean, 0, 150, trackW);
             ctx.beginPath();
             ctx.moveTo(grCleanX, depthToY(data[0].depth));
             data.forEach(d => ctx.lineTo(t1X + getLinearX(d.gr, 0, 150, trackW), depthToY(d.depth)));
             ctx.lineTo(t1X + trackW, depthToY(data[data.length - 1].depth));
             ctx.lineTo(t1X + trackW, depthToY(data[0].depth));
-            ctx.fillStyle = 'rgba(161, 98, 7, 0.35)'; // Shale Brown
+            ctx.fillStyle = colors.shaleShade;
             ctx.fill();
 
             ctx.beginPath();
             ctx.moveTo(t1X, depthToY(data[0].depth));
             data.forEach(d => ctx.lineTo(t1X + getLinearX(d.gr, 0, 150, trackW), depthToY(d.depth)));
             ctx.lineTo(t1X, depthToY(data[data.length - 1].depth));
-            ctx.fillStyle = 'rgba(234, 179, 8, 0.35)'; // Sand Yellow
+            ctx.fillStyle = colors.sandShade;
             ctx.fill();
 
-            drawCurve(ctx, data, d => t1X + getLinearX(d.gr, 0, 150, trackW), depthToY, '#10b981', 1.5);
+            drawCurve(ctx, data, d => t1X + getLinearX(d.gr, 0, 150, trackW), depthToY, colors.gr, 1.5);
 
-            // --- TRACK 2: Resistivity & Ro Overlay ---
+            // TRACK 2: Resistivity & Ro
             const getLogResX = (val) => {
                 const lVal = Math.log10(Math.max(0.2, val));
                 return ((lVal - Math.log10(0.2)) / (Math.log10(2000) - Math.log10(0.2))) * trackW;
             };
 
-            // Hydrocarbon Separation Fill (RDEP >> Ro)
             for (let i = 0; i < data.length - 1; i++) {
                 const d1 = data[i]; const d2 = data[i + 1];
                 const xR1 = t2X + getLogResX(d1.rdep); const xRo1 = t2X + getLogResX(d1.ro);
@@ -1003,15 +1093,15 @@
                     ctx.lineTo(xR2, depthToY(d2.depth));
                     ctx.lineTo(xRo2, depthToY(d2.depth));
                     ctx.closePath();
-                    ctx.fillStyle = 'rgba(239, 68, 68, 0.25)'; // Hydrocarbon separation shade
+                    ctx.fillStyle = colors.hcShade;
                     ctx.fill();
                 }
             }
 
-            drawCurve(ctx, data, d => t2X + getLogResX(d.rdep), depthToY, '#ef4444', 1.8);
-            drawCurve(ctx, data, d => t2X + getLogResX(d.ro), depthToY, '#38bdf8', 1.2, [3, 2]);
+            drawCurve(ctx, data, d => t2X + getLogResX(d.rdep), depthToY, colors.rdep, 1.8);
+            drawCurve(ctx, data, d => t2X + getLogResX(d.ro), depthToY, colors.ro, 1.2, [3, 2]);
 
-            // --- TRACK 3: Porosity & Gas Crossover Fill ---
+            // TRACK 3: Porosity NPHI-RHOB & Gas Crossover
             const getNphiX = (val) => t3X + getLinearX(val, 0.45, -0.15, trackW);
             const getRhobX = (val) => t3X + getLinearX(val, 1.95, 2.95, trackW);
 
@@ -1027,24 +1117,24 @@
                     ctx.lineTo(xN2, depthToY(d2.depth));
                     ctx.lineTo(xR2, depthToY(d2.depth));
                     ctx.closePath();
-                    ctx.fillStyle = 'rgba(250, 204, 21, 0.85)'; // Yellow Gas Crossover
+                    ctx.fillStyle = colors.gasShade;
                     ctx.fill();
                 }
             }
 
-            drawCurve(ctx, data, d => getNphiX(d.nphi), depthToY, '#06b6d4', 1.5);
-            drawCurve(ctx, data, d => getRhobX(d.rhob), depthToY, '#f43f5e', 1.5);
+            drawCurve(ctx, data, d => getNphiX(d.nphi), depthToY, colors.nphi, 1.5);
+            drawCurve(ctx, data, d => getRhobX(d.rhob), depthToY, colors.rhob, 1.5);
 
-            // --- TRACK 4: PHIE & Permeability ---
+            // TRACK 4: PHIE & Permeability
             const getPermX = (val) => {
                 const lVal = Math.log10(Math.max(0.01, val));
                 return ((lVal - Math.log10(0.01)) / (Math.log10(10000) - Math.log10(0.01))) * trackW;
             };
 
-            drawCurve(ctx, data, d => t4X + getLinearX(d.phie, 0, 0.40, trackW), depthToY, '#38bdf8', 1.5);
-            drawCurve(ctx, data, d => t4X + getPermX(d.perm), depthToY, '#10b981', 1.2, [3, 2]);
+            drawCurve(ctx, data, d => t4X + getLinearX(d.phie, 0, 0.40, trackW), depthToY, colors.phie, 1.5);
+            drawCurve(ctx, data, d => t4X + getPermX(d.perm), depthToY, colors.perm, 1.2, [3, 2]);
 
-            // --- TRACK 5: AUTOMATED INTERPRETATION COLUMN ---
+            // TRACK 5: AUTOMATED INTERPRETATION
             const cFluidX = t5X;
             const cLithoX = t5X + 40;
             const cPayX = t5X + 80;
@@ -1055,45 +1145,45 @@
                 const y = depthToY(d.depth);
                 const h = appState.scaleY * appState.wellMeta.step + 0.5;
 
-                // 1. Fluid Column
-                if (d.fluidType === 'Gas') ctx.fillStyle = '#ef4444';      // Red
-                else if (d.fluidType === 'Oil') ctx.fillStyle = '#22c55e'; // Green
-                else if (d.fluidType === 'Water') ctx.fillStyle = '#3b82f6';// Blue
-                else ctx.fillStyle = '#475569';                             // Slate Shale
+                // Fluid
+                if (d.fluidType === 'Gas') ctx.fillStyle = '#ef4444';
+                else if (d.fluidType === 'Oil') ctx.fillStyle = '#22c55e';
+                else if (d.fluidType === 'Water') ctx.fillStyle = '#3b82f6';
+                else ctx.fillStyle = isDark ? '#475569' : '#94a3b8';
 
                 ctx.fillRect(cFluidX, y, colW, h);
 
-                // 2. Lithology Column
-                if (d.isSand) ctx.fillStyle = '#eab308'; // Sandstone
-                else ctx.fillStyle = '#64748b';          // Shale
+                // Lithology
+                if (d.isSand) ctx.fillStyle = '#eab308';
+                else ctx.fillStyle = isDark ? '#64748b' : '#cbd5e1';
                 ctx.fillRect(cLithoX, y, colW, h);
 
-                // 3. Net Pay Column
+                // Net Pay
                 if (d.isPay) {
                     ctx.fillStyle = '#facc15';
                     ctx.fillRect(cPayX, y, colW, h);
                 }
             });
 
-            // Draw Target Guns / Perforation Markers
+            // Target Gun Markers
             appState.perfTargets.forEach(t => {
                 const topY = depthToY(t.top);
                 const botY = depthToY(t.bottom);
                 const h = botY - topY;
 
-                ctx.fillStyle = 'rgba(220, 38, 38, 0.7)'; // Red Target Bar
+                ctx.fillStyle = 'rgba(220, 38, 38, 0.85)';
                 ctx.fillRect(cTargetX, topY, colW, h);
                 ctx.strokeStyle = '#ffffff';
                 ctx.strokeRect(cTargetX, topY, colW, h);
             });
 
-            // Draw Column Dividers
+            // Dividers
             [cFluidX, cLithoX, cPayX, cTargetX, t5X + 160].forEach(x => {
-                ctx.strokeStyle = '#334155';
+                ctx.strokeStyle = colors.border;
                 ctx.beginPath(); ctx.moveTo(x, headerH); ctx.lineTo(x, canvasHeight); ctx.stroke();
             });
 
-            // Draw Contact Line Callouts (GOC & OWC)
+            // Contact Markers
             if (appState.contacts.goc) {
                 const y = depthToY(appState.contacts.goc);
                 drawContactMarker(ctx, t1X, t5X + 160, y, "GOC: " + appState.contacts.goc.toFixed(1) + "m", "#facc15");
@@ -1103,8 +1193,8 @@
                 drawContactMarker(ctx, t1X, t5X + 160, y, "OWC: " + appState.contacts.owc.toFixed(1) + "m", "#38bdf8");
             }
 
-            // --- CROSSHAIR INSPECTOR ---
-            if (appState.hoverIdx >= 0 && appState.hoverIdx < data.length) {
+            // Crosshair Inspector (Screen Display Only)
+            if (!options.isExport && appState.hoverIdx >= 0 && appState.hoverIdx < data.length) {
                 const hData = data[appState.hoverIdx];
                 const hy = depthToY(hData.depth);
 
@@ -1121,13 +1211,13 @@
             ctx.restore();
         }
 
-        function drawTrackHeader(ctx, x, y, w, h, title, curves) {
-            ctx.fillStyle = '#0f172a';
+        function drawTrackHeaderCustom(ctx, x, y, w, h, title, curves, colors) {
+            ctx.fillStyle = colors.trackBg;
             ctx.fillRect(x, y, w, h);
-            ctx.strokeStyle = '#334155';
+            ctx.strokeStyle = colors.border;
             ctx.strokeRect(x, y, w, h);
 
-            ctx.fillStyle = '#f8fafc';
+            ctx.fillStyle = colors.textPrimary;
             ctx.font = 'bold 11px Inter, sans-serif';
             ctx.textAlign = 'center';
             ctx.fillText(title, x + w / 2, y + 16);
@@ -1183,15 +1273,49 @@
             return ((clamped - min) / (max - min)) * width;
         }
 
-        // Crossplots Renderer
+        // DEDICATED JPG IMAGE EXPORTER FUNCTION
+        function exportLogAsJPG() {
+            const themeRadios = document.getElementsByName('jpg-theme');
+            let selectedTheme = 'dark';
+            for (const r of themeRadios) {
+                if (r.checked) selectedTheme = r.value;
+            }
+
+            const scaleDpi = parseInt(document.getElementById('sel-jpg-resolution').value) || 2;
+            const includeHeaderBanner = document.getElementById('chk-jpg-header').checked;
+
+            // Offscreen Canvas Generator
+            const exportCanvas = document.createElement('canvas');
+            
+            drawMultiTrackCanvas(exportCanvas, {
+                isExport: true,
+                theme: selectedTheme,
+                scaleDpi: scaleDpi,
+                includeHeaderBanner: includeHeaderBanner
+            });
+
+            // Convert to JPEG Data URL with 0.95 Quality
+            const jpgUrl = exportCanvas.toDataURL('image/jpeg', 0.95);
+
+            // Trigger Download
+            const fileName = `${appState.wellMeta.name}_LOG_PLOT.jpg`;
+            const a = document.createElement('a');
+            a.href = jpgUrl;
+            a.download = fileName;
+            a.click();
+
+            // Hide Modal
+            document.getElementById('modal-jpg-export').classList.add('hidden');
+        }
+
+        // CROSSPLOTS CHART.JS INITIALIZATION
         function initCrossplots() {
             const ctx1 = document.getElementById('chart-nphi-rhob').getContext('2d');
             appState.charts.nphiRhob = new Chart(ctx1, {
                 type: 'scatter',
                 data: { datasets: [] },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
+                    responsive: true, maintainAspectRatio: false,
                     scales: {
                         x: { title: { display: true, text: 'NPHI (v/v)', color: '#94a3b8' }, reverse: true, min: -0.05, max: 0.45, grid: { color: '#1e293b' } },
                         y: { title: { display: true, text: 'RHOB (g/cc)', color: '#94a3b8' }, reverse: true, min: 1.9, max: 2.95, grid: { color: '#1e293b' } }
@@ -1205,8 +1329,7 @@
                 type: 'scatter',
                 data: { datasets: [] },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
+                    responsive: true, maintainAspectRatio: false,
                     scales: {
                         x: { type: 'logarithmic', title: { display: true, text: 'Porosity PHIE (v/v)', color: '#94a3b8' }, min: 0.01, max: 0.5, grid: { color: '#1e293b' } },
                         y: { type: 'logarithmic', title: { display: true, text: 'Deep Resistivity Rt (Ω.m)', color: '#94a3b8' }, min: 0.1, max: 2000, grid: { color: '#1e293b' } }
@@ -1246,25 +1369,21 @@
             appState.charts.pickett.update();
         }
 
-        // LAS 2.0 Exporter
+        // LAS / CSV EXPORTERS
         function exportRawLAS() {
-            let las = `~VERSION INFORMATION\nVERS.                  2.0 : CWLS LOG ASCII STANDARD\nWRAP.                   NO : ONE LINE PER DEPTH STEP\n~WELL INFORMATION\nWELL.            ${appState.wellMeta.name} : WELL NAME\nSTRT.M           ${appState.wellMeta.startDepth.toFixed(4)} : START DEPTH\nSTOP.M           ${appState.wellMeta.stopDepth.toFixed(4)} : STOP DEPTH\nSTEP.M           ${appState.wellMeta.step.toFixed(4)} : STEP\n~CURVE INFORMATION\nDEPTH.M                                 : 1 DEPTH\nGR.API                                  : 2 GAMMA RAY\nRDEP.OHMM                               : 3 DEEP RESISTIVITY\nNPHI.V/V                                : 4 NEUTRON POROSITY\nRHOB.G/CC                               : 5 BULK DENSITY\n~A\n`;
-            
+            let las = `~VERSION INFORMATION\nVERS.                  2.0 : CWLS LOG ASCII STANDARD\nWRAP.                   NO : ONE LINE PER DEPTH STEP\n~WELL INFORMATION\nWELL.            ${appState.wellMeta.name} : WELL NAME\n~CURVE INFORMATION\nDEPTH.M                                 : 1 DEPTH\nGR.API                                  : 2 GAMMA RAY\nRDEP.OHMM                               : 3 DEEP RESISTIVITY\nNPHI.V/V                                : 4 NEUTRON POROSITY\nRHOB.G/CC                               : 5 BULK DENSITY\n~A\n`;
             appState.rawLogs.forEach(d => {
                 las += `${d.depth.toFixed(2).padStart(8)} ${d.gr.toFixed(2).padStart(8)} ${d.rdep.toFixed(2).padStart(8)} ${d.nphi.toFixed(4).padStart(8)} ${d.rhob.toFixed(4).padStart(8)}\n`;
             });
-
             downloadBlob(las, `${appState.wellMeta.name}_RAW.las`, 'text/plain');
         }
 
-        // CSV Exporter
         function exportInterpretedCSV() {
             let csv = "DEPTH,GR,RDEP,NPHI,RHOB,VSH,PHIE,SW,RO,PERM_MD,FLUID_TYPE,IS_PAY\n";
             appState.computedLogs.forEach(d => {
                 csv += `${d.depth.toFixed(2)},${d.gr.toFixed(2)},${d.rdep.toFixed(2)},${d.nphi.toFixed(4)},${d.rhob.toFixed(4)},${d.vsh.toFixed(3)},${d.phie.toFixed(3)},${d.sw.toFixed(3)},${d.ro.toFixed(2)},${d.perm.toFixed(1)},${d.fluidType},${d.isPay ? 1 : 0}\n`;
             });
-
-            downloadBlob(csv, `${appState.wellMeta.name}_INTERPRETED_RESULTS.csv`, 'text/csv');
+            downloadBlob(csv, `${appState.wellMeta.name}_INTERPRETED.csv`, 'text/csv');
         }
 
         function downloadBlob(content, filename, mimeType) {
@@ -1277,56 +1396,8 @@
             window.URL.revokeObjectURL(url);
         }
 
-        // Custom File Parser (LAS 2.0 / CSV)
-        function handleFileUpload(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(evt) {
-                const text = evt.target.result;
-                const lines = text.split('\n');
-                const parsedLogs = [];
-
-                let inData = false;
-                lines.forEach(line => {
-                    const trimmed = line.trim();
-                    if (!trimmed || trimmed.startsWith('#')) return;
-
-                    if (trimmed.startsWith('~A') || trimmed.startsWith('DEPTH')) {
-                        inData = true;
-                        return;
-                    }
-
-                    if (inData) {
-                        const cols = trimmed.split(/[\s,]+/).map(v => parseFloat(v));
-                        if (cols.length >= 5 && !isNaN(cols[0])) {
-                            parsedLogs.push({
-                                depth: cols[0],
-                                gr: cols[1] || 40,
-                                rdep: cols[2] || 5,
-                                nphi: cols[3] || 0.2,
-                                rhob: cols[4] || 2.3,
-                                cali: 8.5, sp: -20, rmed: cols[2] || 5, rsha: cols[2] || 5, dt: 90
-                            });
-                        }
-                    }
-                });
-
-                if (parsedLogs.length > 5) {
-                    appState.wellMeta.name = file.name.split('.')[0].toUpperCase();
-                    appState.wellMeta.startDepth = parsedLogs[0].depth;
-                    appState.wellMeta.stopDepth = parsedLogs[parsedLogs.length - 1].depth;
-                    appState.rawLogs = parsedLogs;
-                    runInterpretationEngine();
-                }
-            };
-            reader.readAsText(file);
-        }
-
-        // Event Listeners Binding
         function bindEvents() {
-            // Tabs Navigation
+            // Navigation Tabs
             const tabs = ['log', 'report', 'crossplots', 'params'];
             tabs.forEach(t => {
                 document.getElementById(`tab-btn-${t}`).addEventListener('click', () => {
@@ -1336,10 +1407,23 @@
                     });
                     document.getElementById(`tab-btn-${t}`).classList.add('active');
                     document.getElementById(`container-tab-${t}`).classList.remove('hidden');
-
                     if (t === 'crossplots') updateCrossplots();
                 });
             });
+
+            // JPG Modal Trigger
+            const modalJpg = document.getElementById('modal-jpg-export');
+            document.getElementById('btn-open-jpg-modal').addEventListener('click', () => {
+                document.getElementById('jpg-filename-preview').textContent = `${appState.wellMeta.name}_LOG_PLOT.jpg`;
+                modalJpg.classList.remove('hidden');
+            });
+            document.getElementById('btn-quick-export-jpg').addEventListener('click', () => {
+                document.getElementById('jpg-filename-preview').textContent = `${appState.wellMeta.name}_LOG_PLOT.jpg`;
+                modalJpg.classList.remove('hidden');
+            });
+            document.getElementById('btn-close-jpg-modal').addEventListener('click', () => modalJpg.classList.add('hidden'));
+            document.getElementById('btn-cancel-jpg-modal').addEventListener('click', () => modalJpg.classList.add('hidden'));
+            document.getElementById('btn-execute-jpg-download').addEventListener('click', exportLogAsJPG);
 
             // Preset Well Switcher
             document.getElementById('sel-preset-well').addEventListener('change', (e) => {
@@ -1377,12 +1461,11 @@
                 renderMultiTrackCanvas();
             });
 
-            // File Downloads & Upload
+            // Downloads
             document.getElementById('btn-download-las').addEventListener('click', exportRawLAS);
             document.getElementById('btn-download-csv').addEventListener('click', exportInterpretedCSV);
-            document.getElementById('file-input-log').addEventListener('change', handleFileUpload);
 
-            // Canvas Mouse Inspector
+            // Canvas Inspector Mousemove
             const canvas = document.getElementById('canvas-multi-track');
             canvas.addEventListener('mousemove', (e) => {
                 const rect = canvas.getBoundingClientRect();
@@ -1430,7 +1513,7 @@
             });
         }
 
-        // Initialize Application
+        // Initialize App
         window.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
             bindEvents();
